@@ -1,0 +1,9 @@
+name = "let"
+version = "0.1.5"
+spin_compatibility = ">=0.7"
+license = "MIT OR Apache-2.0"
+package = "./target/release/let"
+
+[build]
+command = "sh"
+args = ["build.sh"]
