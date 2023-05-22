@@ -1,6 +1,6 @@
 # Spinlet
 
-A [Spin plugin](https://github.com/fermyon/spin-plugins) and runtime for building and running [wasm command components]() as plugins for [Spin](https://github.com/fermyon/spin-plugins).
+A [Spin plugin](https://github.com/fermyon/spin-plugins) and runtime for building and running [wasm32-wasi cli components](https://github.com/WebAssembly/wasi-cli) as plugins for [Spin](https://github.com/fermyon/spin-plugins).
 
 ## Status
 
