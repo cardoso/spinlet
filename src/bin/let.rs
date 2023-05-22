@@ -1,18 +1,6 @@
 use clap::Parser;
 use spinlet::command::Spinlet;
-
-#[derive(Parser)]
-#[command(bin_name = "spin let")]
-pub struct Cli {
-    /// Spinlet to run
-    spinlet: String,
-}
-
-impl Cli {
-    pub fn path(&self) -> String {
-        format!(".spinlets/{}.wasm", self.spinlet)
-    }
-}
+use spinlet::cli::Cli;
 
 #[tokio::main]
 async fn main() {

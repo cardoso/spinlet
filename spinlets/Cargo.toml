@@ -7,5 +7,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 anyhow = "1"
-getrandom = "0.2.8"
+getrandom = "0.2"
 wit-bindgen = "0.6"
+cap-std = "1"
+cap-directories = "1"
+cap-rand = "1"
+cap-tempfile = "1"
