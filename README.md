@@ -1,8 +1,21 @@
 # Spinlet
 
-A [Spin plugin](https://github.com/fermyon/spin-plugins) and runtime for building and running wasm components as plugins for [Spin](https://github.com/fermyon/spin-plugins).
+A [Spin plugin](https://github.com/fermyon/spin-plugins) and runtime for building and running [wasm command components]() as plugins for [Spin](https://github.com/fermyon/spin-plugins).
 
 ## Status
+
+```rust
+fn main() {
+    for arg in std::env::args() {
+        println!("{}", arg);
+    }
+
+    // Plugin only has access to environment variables prefixed with `SPIN_`
+    for (key, value) in std::env::vars() {
+        println!("{}: {}", key, value);
+    }
+}
+```
 
 ```bash
 ➜  spinlet git:(main) ✗ spin let update
