@@ -4,6 +4,10 @@ A [Spin plugin](https://github.com/fermyon/spin-plugins) and runtime for buildin
 
 ## Status
 
+### Sandboxed Environment
+
+- [x] `std::env::args`
+
 ```rust
 fn main() {
     for arg in std::env::args() {
@@ -34,6 +38,49 @@ SPIN_VERSION_MAJOR: 1
 SPIN_VERSION_MINOR: 3
 SPIN_VERSION_PATCH: 0
 SPIN_VERSION_PRE: pre0
+```
+
+
+- [x] `std::fs::read_dir`
+
+```rust
+pub fn main() {
+    /// Plugin only has access to files in the current working directory
+    match std::fs::read_dir("/workspace") {
+        Ok(dir) => {
+            for entry in dir {
+                match entry {
+                    Ok(entry) => println!("{}", entry.path().display()),
+                    Err(error) => println!("error reading entry: {}", error),
+                }
+            }
+        }
+        Err(error) => println!("error reading /: {}", error),
+    }
+}
+```
+
+```bash
+➜  spinlet git:(main) ✗ pwd
+/Users/cardoso/Developer/cardoso/spinlet/spinlet
+➜  spinlet git:(main) ✗ spin let workspace
+You're using a pre-release version of Spin (1.3.0-pre0). This plugin might not be compatible (supported: >=0.7). Continuing anyway.
+/workspace/Cargo.toml
+/workspace/.spinlets
+/workspace/.DS_Store
+/workspace/target
+/workspace/install.sh
+/workspace/let-0.1.5-macos-aarch64.tar.gz
+/workspace/Cargo.lock
+/workspace/README.md
+/workspace/adapters
+/workspace/build.sh
+/workspace/.gitignore
+/workspace/spinlets
+/workspace/.git
+/workspace/let.json
+/workspace/spin-pluginify.toml
+/workspace/src
 ```
 
 ## Usage

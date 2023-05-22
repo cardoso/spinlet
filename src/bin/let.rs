@@ -6,7 +6,7 @@ use spinlet::cli::Cli;
 async fn main() {
     let cli = Cli::parse();
 
-    match Spinlet::load(cli.path()).await {
+    match Spinlet::load(cli.path(), cli.workspace()).await {
         Ok(mut spinlet) => match spinlet.run().await {
             Ok(result) => match result {
                 Ok(()) => (),

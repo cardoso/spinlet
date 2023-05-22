@@ -60,12 +60,12 @@ impl Spinlet {
 }
 
 impl Spinlet {
-    pub async fn load(file: impl AsRef<Path>) -> Result<Self> {
+    pub async fn load(file: impl AsRef<Path>, workspace: impl AsRef<Path>) -> Result<Self> {
         let mut table = Table::new();
         let args = std::env::args().collect::<Vec<_>>();
         let env = std::env::vars().filter(|(k, _)| k.starts_with("SPIN")).collect::<Vec<_>>();
 
-        let (dir, dir_perms, file_perms) = open_dir(".")?;
+        let (dir, dir_perms, file_perms) = open_dir(workspace)?;
 
         let wasi = WasiCtxBuilder::new()
             .inherit_stdio()
