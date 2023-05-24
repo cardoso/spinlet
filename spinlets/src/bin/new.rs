@@ -1,3 +1,10 @@
-pub fn main() {
-    println!("Hello, world!");
+use spinlets::*;
+
+pub fn main() -> Result<()> {
+    let spin = Spin::get();
+
+    spin.console().print("new")?;
+
+
+    Ok(())
 }

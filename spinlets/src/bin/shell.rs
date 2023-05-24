@@ -1,8 +1,8 @@
-use anyhow::{anyhow, bail};
-use spinlets::{*, vfs::Vfs};
+use anyhow::bail;
+use spinlets::*;
 
 fn main() -> Result<()> {
-    let mut spin = Spin::get()?;
+    let mut spin = Spin::get();
 
     loop {
         spin.console().print("> ")?;
@@ -13,7 +13,7 @@ fn main() -> Result<()> {
             break;
         }
         
-        let output = match parse(&mut spin.vfs_mut(), &input) {
+        let output = match parse(spin.vfs_mut(), &input) {
             Ok(output) => output,
             Err(e) => format!("{e}"),
         };
@@ -24,18 +24,14 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn parse(vfs: &mut Vfs, input: &str) -> Result<String> {
+fn parse(vfs: &mut Workspace, input: &str) -> Result<String> {
     let mut args = input.split_whitespace();
     let command = args.next().expect("No command");
     match command {
-        "cd" => {
-            match args.next() {
-                Some(dir) => vfs.cd(dir),
-                None => vfs.cd("/"),
-            }?;
-
-            Ok("".into())
-        }
+        "cd" => match args.next() {
+            Some(dir) => Ok(vfs.cd(dir)?),
+            None => Ok(vfs.cd("/")?)
+        },
         "ls" => vfs.ls().map(|s| s.into_iter().map(|e| e.display().to_string()).collect::<Vec<String>>().join("\n")),
         "pwd" => vfs.pwd(),
         _ => bail!("Unknown command: {}", command)

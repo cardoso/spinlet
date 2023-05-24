@@ -6,7 +6,7 @@ use wasmtime::{
     component::{Component, Linker},
     Config, Engine, Store, WasmBacktraceDetails,
 };
-use wasmtime_wasi::preview2::{wasi, wasi::command::Command, Table, WasiCtx, WasiView, WasiWallClock, WasiMonotonicClock, WasiCtxBuilder};
+use wasmtime_wasi::preview2::{wasi, wasi::command::Command, Table, WasiCtx, WasiView, WasiCtxBuilder, DirPerms, FilePerms};
 
 lazy_static! {
     static ref ENGINE: Engine = {
@@ -31,9 +31,16 @@ pub struct SpinletCtx {
 impl SpinletCtx {
     pub fn new(args: &[String], envs: &[(impl AsRef<str>, impl AsRef<str>)]) -> Result<Self> {
         let mut table = Table::new();
+
+        let dir = cap_std::fs::Dir::open_ambient_dir(".", cap_std::ambient_authority())?;
+        let perms = DirPerms::READ;
+        let file_perms = FilePerms::READ;
+        let path = "/";
+
         let wasi = WasiCtxBuilder::new()
             .set_env(&envs.as_ref())
             .set_args(&args)
+            .push_preopened_dir(dir, perms, file_perms, path)
             .inherit_stdio()
             .build(&mut table)?;
 

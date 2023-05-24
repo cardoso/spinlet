@@ -1,15 +1,15 @@
-use std::{path::{Path, PathBuf}, fs::DirEntry};
+use std::path::{Path, PathBuf};
 use anyhow::Result;
 
 #[derive(Debug)]
-pub struct Vfs {
+pub struct Workspace {
     root: PathBuf,
     current: PathBuf,
 }
 
-impl Vfs {
+impl Workspace {
     pub fn new() -> Self {
-        Vfs {
+        Workspace {
             root: "/".into(),
             current: "/".into(),
         }
@@ -24,23 +24,24 @@ impl Vfs {
     }
 }
 
-impl Vfs {
+impl Workspace {
     pub fn ls(&self) -> Result<Vec<PathBuf>> {
         Ok(std::fs::read_dir(&self.current())?.flat_map(|entry| {
             entry.map(|entry| entry.path())
         }).collect::<Vec<_>>())
     }
 
-    pub fn cd(&mut self, dir: impl AsRef<Path>) -> Result<()> {
-        Ok(self.current = dir.as_ref().to_path_buf())
+    pub fn cd(&mut self, dir: impl AsRef<Path>) -> Result<String> {
+        self.current = dir.as_ref().to_path_buf();
+        Ok("".into())
     }
 
     pub fn pwd(&self) -> Result<String> {
-        Ok(self.current().to_string_lossy().to_string())
+        Ok(self.current().display().to_string())
     }   
 }
 
-impl Default for Vfs {
+impl Default for Workspace {
     fn default() -> Self {
         Self::new()
     }

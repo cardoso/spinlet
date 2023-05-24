@@ -1,64 +1,53 @@
-use std::env::Args;
+pub use std::env::Args;
+use std::env::Vars;
 pub use anyhow::Result;
 
 mod console;
-pub mod vfs;
+mod workspace;
 
-use console::Console;
-use vfs::Vfs;
+pub use console::Console;
+pub use workspace::Workspace;
 
 #[derive(Debug)]
 pub struct Spin {
-    version: String,
-    workspace: String,
-    console: Console,
+    vars: Vars,
     args: Args,
-    vfs: Vfs,
+    console: Console,
+    workspace: Workspace,
 }
 
 impl Spin {
-    pub fn get() -> Result<Self> {
-        if cfg!(target_os = "wasi") {
-            Ok(Self {
-                version: std::env::var("VERSION")?,
-                workspace: std::env::var("WORKSPACE")?,
-                args: std::env::args(),
-                console: Console::new(),
-                vfs: Vfs::new(),
-            })
-        } else {
-            Ok(Self {
-                version: "0.0.0".into(),
-                workspace: "/".into(),
-                args: std::env::args(),
-                console: Console::new(),
-                vfs: Vfs::new(),
-            })
+    pub fn get() -> Self {
+        Self {
+            vars: std::env::vars(),
+            args: std::env::args(),
+            console: Console::new(),
+            workspace: Workspace::new(),
         }
     }
 
-    pub fn vfs(&self) -> &Vfs {
-        &self.vfs
+    pub fn vfs(&self) -> &Workspace {
+        &self.workspace
     }
 
-    pub fn vfs_mut(&mut self) -> &mut Vfs {
-        &mut self.vfs
+    pub fn vfs_mut(&mut self) -> &mut Workspace {
+        &mut self.workspace
     }
 
     pub fn console(&self) -> &Console {
         &self.console
     }
 
-    pub fn version(&self) -> &str {
-        &self.version
-    }
-
-    pub fn workspace(&self) -> &str {
+    pub fn workspace(&self) -> &Workspace {
         &self.workspace
     }
 
     pub fn args(&self) -> &Args {
         &self.args
+    }
+
+    pub fn vars(&self) -> &Vars {
+        &self.vars
     }
 }
 
