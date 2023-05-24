@@ -1,20 +1,23 @@
 use anyhow::Result;
 use cap_std::{ambient_authority, fs::Dir};
-use std::{path::Path};
+use lazy_static::lazy_static;
+use wasmtime_wasi_http::{WasiHttp, default_outgoing_http};
+use std::{path::{PathBuf, Path, self}, io::*, any::Any};
 use wasmtime::{
-    component::{Component, Linker},
+    component::{Component, Linker, Instance},
     Config, Engine, Store, WasmBacktraceDetails,
 };
-use wasmtime_wasi::preview2::{
-    wasi,
-    wasi::command::Command,
-    Table, WasiCtx, WasiCtxBuilder, WasiView, DirPerms, FilePerms,
-};
+use wasmtime_wasi::{preview2::{wasi, OutputStream, InputStream, stdio, stdio::{Stdout, Stdin}, pipe::{ReadPipe, WritePipe}, wasi::{command::Command, random}, WasiCtxBuilder, Table, WasiCtx, WasiView, DirPerms, FilePerms, }};
 
-lazy_static::lazy_static! {
+lazy_static! {
     static ref ENGINE: Engine = {
         let mut config = Config::new();
-        config.wasm_backtrace_details(WasmBacktraceDetails::Enable);
+        if cfg!(debug_assertions) {
+            config.debug_info(true);
+            config.wasm_backtrace(true);
+            config.wasm_backtrace_details(WasmBacktraceDetails::Enable);
+        }
+
         config.wasm_component_model(true);
         config.async_support(true);
         Engine::new(&config).unwrap()
@@ -24,6 +27,27 @@ lazy_static::lazy_static! {
 pub struct CommandCtx {
     table: Table,
     wasi: WasiCtx,
+}
+
+impl CommandCtx {
+    pub fn spawn_in(path: impl AsRef<Path>, dir: impl AsRef<Path>) -> Result<Self> {
+        let dir = Dir::open_ambient_dir(dir, ambient_authority())?;
+        let dir_perms = DirPerms::all();
+        let file_perms = FilePerms::all();
+        let mut table = Table::new();
+
+        let wasi = WasiCtxBuilder::new()
+            .inherit_stdio()
+            .push_env("WORKSPACE", "/")
+            .push_env("VERSION", env!("CARGO_PKG_VERSION"))
+            .push_preopened_dir(dir, dir_perms, file_perms, "/")
+            .build(&mut table)?;
+
+        Ok(Self {
+            table,
+            wasi
+        })
+    }
 }
 
 impl WasiView for CommandCtx {
@@ -44,13 +68,15 @@ impl WasiView for CommandCtx {
 pub struct Spinlet {
     store: Store<CommandCtx>,
     command: Command,
+    instance: Instance,
 }
 
 impl Spinlet {
-    pub fn new(store: Store<CommandCtx>, command: Command) -> Self {
+    pub fn new(store: Store<CommandCtx>, command: Command, instance: Instance) -> Self {
         Spinlet {
             store,
             command,
+            instance,
         }
     }
 
@@ -60,40 +86,18 @@ impl Spinlet {
 }
 
 impl Spinlet {
-    pub async fn load(file: impl AsRef<Path>, workspace: impl AsRef<Path>) -> Result<Self> {
-        let mut table = Table::new();
-        let args = std::env::args().collect::<Vec<_>>();
-        let env = std::env::vars().filter(|(k, _)| k.starts_with("SPIN")).collect::<Vec<_>>();
-
-        let (dir, dir_perms, file_perms) = open_dir(workspace)?;
-
-        let wasi = WasiCtxBuilder::new()
-            .inherit_stdio()
-            .set_env(&env)
-            .set_args(&args)
-            .push_preopened_dir(dir, dir_perms, file_perms, "/workspace")
-            .build(&mut table)?;
-
-        let mut store = Store::new(&ENGINE, CommandCtx { table, wasi });
+    pub async fn load(path: impl AsRef<Path>, dir: impl AsRef<Path>) -> Result<Self> {
+        let ctx = CommandCtx::spawn_in(&path, dir)?;
+        let mut store = Store::new(&ENGINE, ctx);
         let mut linker = Linker::new(&ENGINE);
 
         wasi::command::add_to_linker(&mut linker)?;
 
-        let component = Component::from_file(&ENGINE, file)?;
+        let component = Component::from_file(&ENGINE, &path)?;
 
-        let (command, _instance) =
+        let (command, instance) =
             Command::instantiate_async(&mut store, &component, &linker).await?;
-        
 
-
-        Ok(Spinlet::new(store, command))
+        Ok(Spinlet::new(store, command, instance))
     }
-}
-
-fn open_dir(path: impl AsRef<Path>) -> Result<(Dir, DirPerms, FilePerms), anyhow::Error> {
-    let dir = cap_std::fs::Dir::open_ambient_dir(path, ambient_authority())?;
-    let dir_perms = DirPerms::all();
-    let file_perms = FilePerms::all();
-    let dir = dir.open_dir(".")?;
-    Ok((dir, dir_perms, file_perms))
 }

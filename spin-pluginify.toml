@@ -1,6 +1,6 @@
 name = "let"
-version = "0.1.5"
-spin_compatibility = ">=0.7"
+version = "0.1.6"
+spin_compatibility = ">=0.8"
 license = "MIT OR Apache-2.0"
 package = "./target/release/let"
 

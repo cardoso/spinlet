@@ -13,6 +13,6 @@ cp target/wasm32-wasi/release/*.wasm .spinlets
 
 # Adapt modules into components
 for i in .spinlets/*; do
-    wasm-tools component new "$i" --output "$i" --adapt wasi_snapshot_preview1=./adapters/wasi_preview1_component_adapter.command.wasm -vvv
+    wasm-tools component new "$i" --output "$i" --adapt wasi_snapshot_preview1=./adapters/wasi_preview1_component_adapter.command.wasm -v
 done
 

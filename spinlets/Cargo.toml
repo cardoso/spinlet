@@ -4,12 +4,12 @@ authors = ["Spinlets"]
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 anyhow = "1"
+console = "0.15"
+indicatif = "0.17"
+dialoguer = { version = "0.10", features = ["fuzzy-matcher", "history", "tempfile"] }
 getrandom = "0.2"
-wit-bindgen = "0.6"
+rustix  = "0.37"
 cap-std = "1"
-cap-directories = "1"
-cap-rand = "1"
-cap-tempfile = "1"
+is-terminal = "0.4"

@@ -86,6 +86,21 @@ You're using a pre-release version of Spin (1.3.0-pre0). This plugin might not b
 ## Usage
 
 ```bash
-#!/usr/bin/env bash
-spin let [spinlet] [spinlet args]
+spin let [spinlet] -- [spinlet args]
+```
+
+```terminal
+Usage: spin let [OPTIONS] <SPINLET> [-- <ARGS>...]
+
+Arguments:
+  <SPINLET>  Spinlet to run
+  [ARGS]...  Arguments to pass to the
+             spinlet
+
+Options:
+  -w, --workspace <WORKSPACE>
+          Workspace to run the spinlet
+          in [default: .]
+  -h, --help
+          Print help
 ```
