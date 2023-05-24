@@ -1,4 +1,4 @@
-use anyhow::bail;
+use anyhow::{bail, Context};
 use spinlets::*;
 
 fn main() -> Result<()> {
@@ -34,6 +34,7 @@ fn parse(vfs: &mut Workspace, input: &str) -> Result<String> {
         },
         "ls" => vfs.ls().map(|s| s.into_iter().map(|e| e.display().to_string()).collect::<Vec<String>>().join("\n")),
         "pwd" => vfs.pwd(),
+        "cat" => vfs.cat(args.next().context("No file")?),
         _ => bail!("Unknown command: {}", command)
     }
 }

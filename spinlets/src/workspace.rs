@@ -38,7 +38,12 @@ impl Workspace {
 
     pub fn pwd(&self) -> Result<String> {
         Ok(self.current().display().to_string())
-    }   
+    }
+
+    pub fn cat(&self, file: impl AsRef<Path>) -> Result<String> {
+        let path = self.current().join(file);
+        Ok(std::fs::read_to_string(path)?)
+    }
 }
 
 impl Default for Workspace {
