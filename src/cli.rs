@@ -1,5 +1,4 @@
 use std::path::{PathBuf, Path};
-use anyhow::Result;
 use clap::Parser;
 
 #[derive(Parser)]
@@ -41,7 +40,97 @@ impl Cli {
         &self.args
     }
 
-    pub fn workspace(&self) -> &PathBuf {
+    pub fn workspace(&self) -> &Path {
         &self.workspace
+    }
+
+    pub fn envs(&self) -> Vec<(String, String)> {
+        vec![
+            ("SPINLET".to_string(), self.spinlet.clone()),
+            ("SPINLET_DIR".to_string(), self.dir.to_string_lossy().to_string()),
+            ("SPINLET_EXT".to_string(), self.ext.clone()),
+            ("SPINLET_WORKSPACE".to_string(), self.workspace.to_string_lossy().to_string()),
+        ]
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_path() {
+        let cli = Cli {
+            spinlet: "shell".to_string(),
+            dir: PathBuf::from(".spinlets"),
+            ext: "wasm".to_string(),
+            workspace: PathBuf::from("."),
+            args: vec![],
+        };
+        assert_eq!(
+            cli.path(),
+            PathBuf::from(".spinlets/shell.wasm")
+        );
+    }
+
+    #[test]
+    fn test_dir() {
+        let cli = Cli {
+            spinlet: "shell".to_string(),
+            dir: PathBuf::from(".spinlets"),
+            ext: "wasm".to_string(),
+            workspace: PathBuf::from("."),
+            args: vec![],
+        };
+        assert_eq!(
+            cli.dir(),
+            Path::new(".spinlets")
+        );
+    }
+
+    #[test]
+    fn test_spinlet() {
+        let cli = Cli {
+            spinlet: "shell".to_string(),
+            dir: PathBuf::from(".spinlets"),
+            ext: "wasm".to_string(),
+            workspace: PathBuf::from("."),
+            args: vec![],
+        };
+        assert_eq!(
+            cli.spinlet(),
+            "shell"
+        );
+    }
+
+    #[test]
+    fn test_args() {
+        let cli = Cli {
+            spinlet: "shell".to_string(),
+            dir: PathBuf::from(".spinlets"),
+            ext: "wasm".to_string(),
+            workspace: PathBuf::from("."),
+            args: vec!["arg1".to_string(), "arg2".to_string()],
+        };
+        assert_eq!(
+            cli.args(),
+            &["arg1", "arg2"]
+        );
+    }
+
+    #[test]
+    fn test_workspace() {
+        let cli = Cli {
+            spinlet: "shell".to_string(),
+            dir: PathBuf::from(".spinlets"),
+            ext: "wasm".to_string(),
+            workspace: PathBuf::from("."),
+            args: vec![],
+        };
+        assert_eq!(
+            cli.workspace(),
+            Path::new(".")
+        );
     }
 }

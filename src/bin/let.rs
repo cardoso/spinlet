@@ -1,4 +1,7 @@
+use clap::Parser;
+
 #[tokio::main]
 async fn main() {
-    spinlet::run().await;
+    let result = spinlet::Cli::parse().run().await;
+    result.expect("Spinlet failed")
 }

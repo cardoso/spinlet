@@ -1,17 +1,13 @@
 [workspace]
 members = ["spinlets"]
 
-
 [package]
 name = "spinlet"
 version = "0.1.0"
 edition = "2021"
 authors = ["Matheus Cardoso <matheus@cardo.so>"]
 
-default-run = "let"
-
 [dependencies]
-
 tracing-subscriber = { version = "0.3", default-features = false, features = ["env-filter", "fmt" ]}
 clap = { version = "4", features = ["unicode", "env", "derive", "cargo", "string", "unstable-v5", "wrap_help", "unstable-styles"] }
 tokio = { version = "1", features = ["full"] }

@@ -1,21 +1,17 @@
-mod command;
+mod spinlet;
 mod cli;
 
-use clap::Parser;
-use command::*;
-use cli::*;
+pub use clap::Parser;
+use spinlet::*;
+pub use cli::*;
+use anyhow::Result;
 
-pub async fn run() {
-    let cli = Cli::parse();
+impl Cli {
+    pub async fn run(&self) -> Result<()> {
 
-    match Spinlet::load(&cli.path(), &cli.dir()).await {
-        Ok(mut spinlet) => match spinlet.run().await {
-            Ok(result) => match result {
-                Ok(()) => println!("spinlet ran successfully"),
-                Err(()) => println!("spinlet failed to run"),
-            },
-            Err(error) => println!("error loading spinlet: {}", error),
-        },
-        Err(error) => println!("error loading spinlet: {}", error),
+        let command = SpinletCtx::new(self.args(), &[("WORKSPACE", "/"), ("VERSION", "1.0.0")])?;
+        let mut spinlet = Spinlet::load(self.path(), command).await?;
+        spinlet.run().await
     }
 }
+

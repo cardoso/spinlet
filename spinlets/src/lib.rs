@@ -1,58 +1,65 @@
-use anyhow::Context;
-pub use anyhow::Result;
-pub use console::Term;
-pub use dialoguer::*;
-pub use console::*;
-pub use indicatif::*;
 use std::env::Args;
-pub use std::io::BufRead;
-pub use std::io::BufWriter;
-pub use std::io::Read;
-use std::io::StderrLock;
-use std::io::StdinLock;
-use std::io::StdoutLock;
-pub use std::io::Write;
-pub use is_terminal::*;
+pub use anyhow::Result;
+
+mod console;
+pub mod vfs;
+
+use console::Console;
+use vfs::Vfs;
 
 #[derive(Debug)]
-pub struct Spin<'spin> {
+pub struct Spin {
     version: String,
     workspace: String,
+    console: Console,
     args: Args,
-    stdin: StdinLock<'spin>,
-    stdout: StdoutLock<'spin>,
-    stderr: StderrLock<'spin>,
+    vfs: Vfs,
 }
 
-impl<'spin> Spin<'spin> {
-    pub fn get() -> anyhow::Result<Self> {
-        Ok(Self {
-            version: std::env::var("VERSION")?,
-            workspace: std::env::var("WORKSPACE")?,
-            args: std::env::args(),
-            stdin: std::io::stdin().lock(),
-            stdout: std::io::stdout().lock(),
-            stderr: std::io::stderr().lock(),
-        })
+impl Spin {
+    pub fn get() -> Result<Self> {
+        if cfg!(target_os = "wasi") {
+            Ok(Self {
+                version: std::env::var("VERSION")?,
+                workspace: std::env::var("WORKSPACE")?,
+                args: std::env::args(),
+                console: Console::new(),
+                vfs: Vfs::new(),
+            })
+        } else {
+            Ok(Self {
+                version: "0.0.0".into(),
+                workspace: "/".into(),
+                args: std::env::args(),
+                console: Console::new(),
+                vfs: Vfs::new(),
+            })
+        }
     }
 
-    pub fn write(&mut self, s: impl AsRef<str>) -> Result<()> {
-        let bytes = s.as_ref().as_bytes();
-        self.stderr.write_all(bytes)?;
-        self.stderr.flush()?;
-        Ok(())
+    pub fn vfs(&self) -> &Vfs {
+        &self.vfs
     }
 
-    pub fn writeln(&mut self, s: impl AsRef<str>) -> Result<()> {
-        let bytes = s.as_ref().as_bytes();
-        self.stderr.write_all(bytes)?;
-        self.stderr.write_all(b"\n")?;
-        Ok(())
+    pub fn vfs_mut(&mut self) -> &mut Vfs {
+        &mut self.vfs
     }
 
-    pub fn read_line(&mut self) -> Result<String> {
-        let buffer = &mut String::new();
-        self.stdin.read_line(buffer)?;
-        Ok(buffer)
+    pub fn console(&self) -> &Console {
+        &self.console
+    }
+
+    pub fn version(&self) -> &str {
+        &self.version
+    }
+
+    pub fn workspace(&self) -> &str {
+        &self.workspace
+    }
+
+    pub fn args(&self) -> &Args {
+        &self.args
     }
 }
+
+
