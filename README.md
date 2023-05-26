@@ -22,25 +22,17 @@ stdin = true
 stdout = true
 stderr = true
 
-[[access.env]]
-key = "HOME"
+[[access.file]]
+path = "Cargo.toml"
+read = true
+write = true
 
 [[access.dir]]
 path = "."
 read = true
 
-[[access.file]]
-path = "Cargo.toml"
-read = true
-
-[[access.dir]]
-path = "registry"
-read = true
-
-[[access.file]]
-path = "registry/spin.toml"
-read = true
-write = true
+[[access.env]]
+key = "HOME"
 ```
 
 - [x] `std::env::args`
