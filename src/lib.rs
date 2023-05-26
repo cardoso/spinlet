@@ -19,8 +19,6 @@ pub struct Spinlet {
 }
 
 impl Spinlet {
-
-   
     pub async fn load(mut executor: Executor<Context>, path: &Path) -> Result<Self> {
         let command = executor.load(&path).await?;
         
@@ -28,6 +26,6 @@ impl Spinlet {
     }
     
     pub async fn run(&mut self) -> Result<Result<(), ()>> {
-        self.executor.run(&mut self.command).await
+        Ok(self.executor.run(&mut self.command).await?)
     }
 }

@@ -1,0 +1,16 @@
+[access.stdio]
+stdin = true
+stdout = true
+stderr = true
+
+[[access.file]]
+path = "Cargo.toml"
+read = true
+write = true
+
+[[access.dir]]
+path = "."
+read = true
+
+[[access.env]]
+key = "HOME"

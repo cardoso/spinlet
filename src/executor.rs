@@ -34,7 +34,7 @@ impl<T: WasiView> Executor<T> {
     }
 
     pub async fn run(&mut self, command: &Command) -> Result<Result<(), ()>> {
-        command.call_run(&mut self.store).await
+        Ok(command.call_run(&mut self.store).await?)
     }
 
     pub fn engine(&self) -> &Engine {
