@@ -1,5 +1,5 @@
 [workspace]
-members = ["spinlets"]
+members = ["spinlets", "registry"]
 
 [package]
 name = "spinlet"
@@ -12,7 +12,7 @@ tracing-subscriber = { version = "0.3", default-features = false, features = ["e
 clap = { version = "4", features = ["unicode", "env", "derive", "cargo", "string", "unstable-v5", "wrap_help", "unstable-styles"] }
 tokio = { version = "1", features = ["full"] }
 lazy_static = "1"
-dirs = "5"
+directories = "5"
 cap-std = "1"
 cap-rand = "1"
 cap-fs-ext = "1"
@@ -20,6 +20,11 @@ cap-net-ext = "1"
 anyhow = "1"
 thiserror = "1"
 tracing = "0.1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.7"
+schemars = { version = "0.8", features = ["derive"] }
+similar = "2"
 
 fs-set-times = "0.19"
 cap-time-ext = "1"
@@ -38,3 +43,4 @@ wasmtime = { git = "https://github.com/bytecodealliance/wasmtime", features = ["
 wasmtime-wasi = { git = "https://github.com/bytecodealliance/wasmtime", features = ["tokio"] }
 wasmtime-wasi-http = { git = "https://github.com/bytecodealliance/wasmtime" }
 reqwest = "0.11"
+log = "0.4"

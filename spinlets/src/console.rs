@@ -1,4 +1,4 @@
-use std::io::{Write, BufRead, Stderr, Stdout, Stdin, IsTerminal};
+pub use std::io::*;
 
 use anyhow::Result;
 
@@ -10,11 +10,15 @@ pub struct Console {
 }
 
 impl Console {
-    pub fn new() -> Self {
+    pub fn get() -> Self {
+        let stdin = std::io::stdin();
+        let stdout = std::io::stdout();
+        let stderr = std::io::stderr();
+
         Self {
-            stdin: std::io::stdin(),
-            stdout: std::io::stdout(),
-            stderr: std::io::stderr(),
+            stdin,
+            stdout,
+            stderr
         }
     }
 

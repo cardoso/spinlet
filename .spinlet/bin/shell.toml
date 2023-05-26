@@ -1,0 +1,10 @@
+stdin = true
+stdout = true
+stderr = true
+args = []
+env = []
+
+[[access]]
+path = "."
+read = true
+write = true

@@ -1,53 +1,32 @@
-pub use std::env::Args;
-use std::env::Vars;
+pub mod env;
 pub use anyhow::Result;
 
 mod console;
-mod workspace;
+
 
 pub use console::Console;
-pub use workspace::Workspace;
+
 
 #[derive(Debug)]
-pub struct Spin {
-    vars: Vars,
-    args: Args,
+pub struct Spinlet {
     console: Console,
-    workspace: Workspace,
+    workspace: env::Workspace,
 }
 
-impl Spin {
+impl Spinlet {
     pub fn get() -> Self {
         Self {
-            vars: std::env::vars(),
-            args: std::env::args(),
-            console: Console::new(),
-            workspace: Workspace::new(),
+            console: Console::get(),
+            workspace: env::Workspace::get(),
         }
     }
 
-    pub fn vfs(&self) -> &Workspace {
-        &self.workspace
-    }
-
-    pub fn vfs_mut(&mut self) -> &mut Workspace {
+    pub fn workspace_mut(&mut self) -> &mut env::Workspace {
         &mut self.workspace
     }
 
     pub fn console(&self) -> &Console {
         &self.console
-    }
-
-    pub fn workspace(&self) -> &Workspace {
-        &self.workspace
-    }
-
-    pub fn args(&self) -> &Args {
-        &self.args
-    }
-
-    pub fn vars(&self) -> &Vars {
-        &self.vars
     }
 }
 

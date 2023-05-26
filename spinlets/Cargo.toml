@@ -6,5 +6,4 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1"
-is-terminal = "0.4"
 getrandom = "0.2"

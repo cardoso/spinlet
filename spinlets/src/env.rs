@@ -1,5 +1,11 @@
+pub use std::env::*;
 use std::path::{Path, PathBuf};
 use anyhow::Result;
+
+pub fn get_current_dir() {
+    let current_dir = std::env::current_dir().unwrap();
+    println!("The current directory is {}", current_dir.display());
+}
 
 #[derive(Debug)]
 pub struct Workspace {
@@ -8,7 +14,7 @@ pub struct Workspace {
 }
 
 impl Workspace {
-    pub fn new() -> Self {
+    pub fn get() -> Self {
         Workspace {
             root: "/".into(),
             current: "/".into(),
@@ -48,7 +54,7 @@ impl Workspace {
 
 impl Default for Workspace {
     fn default() -> Self {
-        Self::new()
+        Self::get()
     }
 }
 
