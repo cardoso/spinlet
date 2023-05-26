@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use wasmtime::{Result, component::Component};
+use wasmtime::Result;
 use wasmtime_wasi::preview2::wasi::command::Command;
 
 mod context;
@@ -13,17 +13,16 @@ pub use context::Context;
 pub use executor::Executor;
 pub use context::Capabilities;
 
-
 pub struct Spinlet {
     executor: Executor<Context>,
     command: Command
 }
 
 impl Spinlet {
+
    
-    pub async fn load(path: &Path, mut executor: Executor<Context>) -> Result<Self> {
-        let component = Component::from_file(&executor.engine(), path)?;
-        let command = executor.load(&component).await?;
+    pub async fn load(mut executor: Executor<Context>, path: &Path) -> Result<Self> {
+        let command = executor.load(&path).await?;
         
         Ok(Spinlet { executor, command })
     }

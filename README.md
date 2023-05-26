@@ -2,6 +2,14 @@
 
 Spinlet is a plugin and runtime for building and running wasm32-wasi cli components as  [plugins](https://github.com/fermyon/spin-plugins) for  [Spin](https://github.com/fermyon/spin). It provides a sandboxed environment with access control to protect the host system from malicious code. Spinlet supports features such as `std::env::args` and `std::fs::read_dir`, and allows users to specify which environment variables, directories, and files the plugin has access to.
 
+## Requirements
+
+Spinlet requires the following tools to be installed:
+
+- [Spin](https://github.com/fermyon/spin) >= 1.2.0
+- [wasm-tools](https://github.com/wasmtime/wasm-tools) >= 1.0.35
+- [spin-pluginify](https://github.com/itowlson/spin-pluginify) >= [PR #6](https://github.com/itowlson/spin-pluginify/pull/6)
+
 ## Status
 
 ### Sandboxed Environment

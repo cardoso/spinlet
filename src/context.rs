@@ -40,7 +40,6 @@ impl Capabilities {
     }
 }
 
-
 pub struct Context {
     table: Table,
     wasi: WasiCtx,

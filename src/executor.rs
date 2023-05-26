@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use wasmtime::{Engine, component::{Linker, Component}, Store, Config};
 use anyhow::Result;
 use wasmtime_wasi::preview2::{wasi::command::{self, Command}, WasiView};
@@ -17,17 +19,17 @@ impl<T: WasiView> Executor<T> {
         config.async_support(true);
 
         let engine = Engine::new(&config)?;
-        let mut linker = Linker::<T>::new(&engine);
+        let store = Store::<T>::new(&engine, context);
 
+        let mut linker = Linker::<T>::new(&engine);
         command::add_to_linker(&mut linker)?;
-        
-        let store = Store::new(&engine, context);
 
         Ok(Self { engine, linker, store })
     }
 
-    pub async fn load(&mut self, component: &Component) -> Result<Command> {
-        let (command, _instance) = Command::instantiate_async(&mut self.store, component, &mut self.linker).await?;
+    pub async fn load(&mut self, path: &Path) -> Result<Command> {
+        let component = Component::from_file(&self.engine, path)?;
+        let (command, _instance) = Command::instantiate_async(&mut self.store, &component, &mut self.linker).await?;
         Ok(command)
     }
 
