@@ -6,6 +6,35 @@ A [Spin plugin](https://github.com/fermyon/spin-plugins) and runtime for buildin
 
 ### Sandboxed Environment
 
+- [x] access control
+
+```toml
+[access.stdio]
+stdin = true
+stdout = true
+stderr = true
+
+[[access.env]]
+key = "HOME"
+
+[[access.dir]]
+path = "."
+read = true
+
+[[access.file]]
+path = "Cargo.toml"
+read = true
+
+[[access.dir]]
+path = "registry"
+read = true
+
+[[access.file]]
+path = "registry/spin.toml"
+read = true
+write = true
+```
+
 - [x] `std::env::args`
 
 ```rust
@@ -14,7 +43,7 @@ fn main() {
         println!("{}", arg);
     }
 
-    // Plugin only has access to environment variables prefixed with `SPIN_`
+    // Plugin only has access to environment variables specified in the manifest
     for (key, value) in std::env::vars() {
         println!("{}: {}", key, value);
     }

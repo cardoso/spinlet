@@ -1,11 +1,8 @@
-fn main() {
-    let env = std::env::args().collect::<Vec<_>>();
+pub fn main() {
     let args = std::env::args().skip(1).collect::<Vec<_>>();
     let mut echo = args.join(" ");
-    for env in env {
-        echo = echo.replace(&env, &std::env::var(&env).unwrap_or("".into()));
+    for (key, value) in std::env::vars() {
+        echo = echo.replace(&key, &value);
     }
-    
-
     println!("{echo}")
 }

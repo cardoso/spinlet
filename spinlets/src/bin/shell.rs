@@ -18,7 +18,7 @@ fn main() {
     }
 }
 
-fn parse(vfs: &mut env::Workspace, input: &str) -> String {
+fn parse(vfs: &mut Workspace, input: &str) -> String {
     let mut args = input.split_whitespace();
     let command = args.next().expect("No command");
     match command {
@@ -47,6 +47,7 @@ fn parse(vfs: &mut env::Workspace, input: &str) -> String {
             },
             None => format!("No file specified")
         },
+        "env" => std::env::vars().map(|(k, v)| format!("{}={}", k, v)).collect::<Vec<_>>().join("\n"),
         _ => format!("Unknown command: {}", command)
     }
 }

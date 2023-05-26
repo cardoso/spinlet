@@ -1,8 +1,10 @@
+[access.stdio]
 stdin = true
 stdout = true
 stderr = true
-args = []
-env = []
+
+[[access.env]]
+key = "HOME"
 
 [[access.dir]]
 path = "."
@@ -15,4 +17,9 @@ read = true
 [[access.dir]]
 path = "registry"
 read = true
+
+[[access.file]]
+path = "registry/spin.toml"
+read = true
+write = true
 

@@ -17,12 +17,14 @@ pub use wasmtime::{
     HostAbi,
     ResourceLimiter,
     ResourceLimiterAsync,
-    WasmParams, WasmResults,
+    WasmParams,
+    WasmResults,
     WasmRet,
     WasmTy,
     IntoFunc,
     LinearMemory,
     MemoryCreator,
+    Caller,
     component::{
         Component,
         Linker,
@@ -30,51 +32,56 @@ pub use wasmtime::{
         ComponentNamedList,
         ComponentType,
         Lift,
-        Lower
+        Lower,
     }
 };
+
+use wasmtime_wasi::Dir;
 pub use wasmtime_wasi::preview2::{
-    pipe::ReadPipe,
-    pipe::WritePipe,
+    RngCore,
+    InputStream,
+    OutputStream,
+    WasiMonotonicClock,
+    WasiWallClock,
     Table,
     WasiCtx,
     WasiView,
     WasiCtxBuilder,
     DirPerms,
     FilePerms,
-    stdio,
-    clocks::{WasiMonotonicClock, WasiWallClock},
-    stream::{InputStream, OutputStream, TableStreamExt},
+    pipe::{ReadPipe, WritePipe},
+    stdio::{Stderr, Stdin, Stdout},
+    stream::TableStreamExt,
     wasi::{
-        command::Command,
-        filesystem::Host,
-        streams::Host as _,
-        random::Host as _,
-        poll::Host as _,
-        wall_clock::Host as _,
-        monotonic_clock::Host as _,
-        timezone::Host as _,
-        environment::Host as _,
-        preopens::Host as _,
-        exit::Host as _,
-        stderr::Host as _,
-        stdin::Host as _,
-        stdout::Host as _,
-        insecure_random_seed::Host as _,
+        filesystem::Host as FilesystemHost,
+        streams::Host as StreamsHost,
+        random::Host as RandomHost,
+        poll::Host as PollHost,
+        wall_clock::Host as WallClockHost,
+        monotonic_clock::Host as MonotonicClockHost,
+        timezone::Host as TimezoneHOst,
+        environment::Host as EnvironmentHost,
+        preopens::Host as PreopensHost,
+        exit::Host as ExitHost,
+        stderr::Host as StderrHost,
+        stdin::Host as StdinHost,
+        stdout::Host as StdoutHost,
+        insecure_random::Host as InsecureRandomHost,
+        insecure_random_seed::Host as InsecureRandomSeedHost,
         command::{
-            insecure_random::Host as _,
-            insecure_random_seed::Host as _,
-            instance_network::Host as _,
-            ip_name_lookup::Host as _,
-            network::Host as _,
-            tcp::Host as _,
-            udp::Host as _,
-            udp_create_socket::Host as _,
-            tcp_create_socket::Host as _
+            Command,
+            instance_network::Host as InstanceNetworkHost,
+            ip_name_lookup::Host as IpNameLookupHost,
+            network::Host as NetworkHost,
+            tcp::Host as TcpHost,
+            udp::Host as UdpHost,
+            udp_create_socket::Host as UdpCreateSocketHost,
+            tcp_create_socket::Host as TcpCreateSocketHost,
+        }
     }
-}};
-use std::path::{Path, PathBuf};
+};
 
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FileAccess {
@@ -95,25 +102,191 @@ pub struct DirAccess {
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
-pub struct Access {
-    #[serde(default)]
-    file: Vec<FileAccess>,
-    #[serde(default)]
-    dir: Vec<DirAccess>,
+pub struct EnvAccess {
+    key: String,
+}
+
+impl EnvAccess {
+    pub fn push(&self, mut ctx: WasiCtxBuilder) -> WasiCtxBuilder {
+        match std::env::var(&self.key) {
+            Ok(value) => {
+                tracing::info!("env: {key}={value}", key = self.key, value = value);
+                ctx = ctx.push_env(&self.key, value);
+            },
+            Err(error) => {
+                tracing::warn!("env: {key}={error}", key = self.key, error = error);
+            }
+        }
+
+        ctx
+    }
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
-pub struct Capabilities {
+pub struct StdioAccess {
     #[serde(default)]
     stdin: bool,
     #[serde(default)]
     stdout: bool,
     #[serde(default)]
     stderr: bool,
+}
+
+impl StdioAccess {
+    pub fn push(&self, mut ctx: WasiCtxBuilder) -> WasiCtxBuilder {
+        ctx = self.push_stdin(ctx);
+        ctx = self.push_stdout(ctx);
+        ctx = self.push_stderr(ctx);
+        ctx
+    }
+
+    fn push_stderr(&self, mut ctx: WasiCtxBuilder) -> WasiCtxBuilder {
+        if self.stderr {
+            tracing::info!("stderr: inherited");
+            ctx = ctx.set_stderr(WritePipe::new(std::io::stderr()));
+        } else {
+            tracing::info!("stderr: sink");
+            ctx = ctx.set_stderr(WritePipe::new(std::io::sink()));
+        }
+        
+        ctx
+    }
+
+    fn push_stdout(&self, mut ctx: WasiCtxBuilder) -> WasiCtxBuilder {
+        if self.stdout {
+            tracing::info!("stdout: inherited");
+            ctx = ctx.set_stdout(WritePipe::new(std::io::stdout()));
+        } else {
+            tracing::info!("stdout: sink");
+            ctx = ctx.set_stdout(WritePipe::new(std::io::sink()));
+        }
+
+        ctx
+    }
+
+    fn push_stdin(&self, mut ctx: WasiCtxBuilder) -> WasiCtxBuilder {
+        if self.stdin {
+            tracing::info!("stdin: inherited");
+            ctx = ctx.set_stdin(ReadPipe::new(std::io::stdin()));
+        } else {
+            tracing::info!("stdin: empty");
+            ctx = ctx.set_stdin(ReadPipe::new(std::io::empty()));
+        }
+
+        ctx
+    }
+}
+
+#[derive(Debug, Default, Serialize, Deserialize)]
+pub struct Access {
+    #[serde(default)]
+    file: Vec<FileAccess>,
+    #[serde(default)]
+    dir: Vec<DirAccess>,
+    #[serde(default)]
+    env: Vec<EnvAccess>,
+    #[serde(default)]
+    stdio: StdioAccess
+}
+
+impl Access {
+    pub fn push(&self, mut ctx: WasiCtxBuilder) -> WasiCtxBuilder {
+        let authority = cap_std::ambient_authority();
+        let workspace = match cap_std::fs::Dir::open_ambient_dir(".", authority) {
+            Ok(dir) => dir,
+            Err(p) => {
+                tracing::error!("failed to open workspace directory: {}", p);
+                return ctx;
+            }
+        };
+
+        ctx = self.stdio.push(ctx);
+        for env in &self.env {
+            ctx = env.push(ctx);
+        }
+        ctx = self.push_dirs(&workspace, ctx);
+        ctx = self.push_files(&workspace, ctx);
+        ctx
+    }
+
+    fn push_dirs(&self, root: &Dir, mut ctx: WasiCtxBuilder) -> WasiCtxBuilder {
+        for access in &self.dir {
+            let path = &access.path.display();
+            match root.open_dir(&access.path) {
+                Ok(dir) => {
+                    tracing::info!("dir: {path}");
+                    let dir_perms = if access.read {
+                        DirPerms::READ
+                    } else {
+                        DirPerms::empty()
+                    } | if access.mutate {
+                        DirPerms::MUTATE
+                    } else {
+                        DirPerms::empty()
+                    };
+
+                    let file_perms = if access.read {
+                        FilePerms::READ
+                    } else {
+                        FilePerms::empty()
+                    } | if access.mutate {
+                        FilePerms::WRITE
+                    } else {
+                        FilePerms::empty()
+                    };
+
+                    ctx = ctx.push_preopened_dir(dir, dir_perms, file_perms, access.path.display().to_string())
+                },
+                Err(error) => {
+                    tracing::warn!("dir: {path} opened: {error}");
+                }
+            }
+        }
+
+        ctx
+    }
+    fn push_files(&self, workspace: &Dir, mut ctx: WasiCtxBuilder) -> WasiCtxBuilder {
+        for access in &self.file {
+            let path = &access.path.display();
+            match workspace.open_dir(&access.path) {
+                Ok(dir) => {
+                    tracing::info!("file: {path}");
+                    let dir_perms = if access.read {
+                        DirPerms::READ
+                    } else {
+                        DirPerms::empty()
+                    } | if access.write {
+                        DirPerms::MUTATE
+                    } else {
+                        DirPerms::empty()
+                    };
+
+                    let file_perms = if access.read {
+                        FilePerms::READ
+                    } else {
+                        FilePerms::empty()
+                    } | if access.write {
+                        FilePerms::WRITE
+                    } else {
+                        FilePerms::empty()
+                    };
+
+                    ctx = ctx.push_preopened_dir(dir, dir_perms, file_perms, access.path.display().to_string())
+                },
+                Err(error) => {
+                    tracing::warn!("file: {path} opened: {error}");
+                }
+            }
+        };
+
+        ctx
+    }
+}
+
+#[derive(Debug, Default, Serialize, Deserialize)]
+pub struct Capabilities {
     #[serde(default)]
     args: Vec<String>,
-    #[serde(default)]
-    env: Vec<String>,
     #[serde(default)]
     access: Access,
 }
@@ -135,141 +308,8 @@ impl Capabilities {
         }
     }
 
-    pub fn push_all(&self, mut ctx: WasiCtxBuilder) -> WasiCtxBuilder {
-        ctx = self.push_stdin(ctx);
-        ctx = self.push_stdout(ctx);
-        ctx = self.push_stderr(ctx);
-        ctx = self.push_env(ctx);
-        ctx = self.push_access(ctx);
-        ctx
-    }
-
-    fn push_access(&self, mut ctx: WasiCtxBuilder) -> WasiCtxBuilder {
-        let authority = cap_std::ambient_authority();
-        let workspace = match cap_std::fs::Dir::open_ambient_dir(".", authority) {
-            Ok(dir) => dir,
-            Err(p) => {
-                tracing::error!("failed to open workspace directory: {}", p);
-                return ctx;
-            }
-        };
-        
-            for access in &self.access.dir {
-                let path = &access.path.display();
-                match workspace.open_dir(&access.path) {
-                    Ok(dir) => {
-                        tracing::info!("dir: {path}");
-                        let dir_perms = if access.read {
-                            DirPerms::READ
-                        } else {
-                            DirPerms::empty()
-                        } | if access.mutate {
-                            DirPerms::MUTATE
-                        } else {
-                            DirPerms::empty()
-                        };
-
-                        let file_perms = if access.read {
-                            FilePerms::READ
-                        } else {
-                            FilePerms::empty()
-                        } | if access.mutate {
-                            FilePerms::WRITE
-                        } else {
-                            FilePerms::empty()
-                        };
-
-                        ctx = ctx.push_preopened_dir(dir, dir_perms, file_perms, access.path.display().to_string())
-                    },
-                    Err(error) => {
-                        tracing::warn!("dir: {path} opened: {error}");
-                    }
-                }
-            }
-
-            for access in &self.access.file {
-                let path = &access.path.display();
-                match workspace.open_dir(&access.path) {
-                    Ok(dir) => {
-                        tracing::info!("file: {path}");
-                        let dir_perms = if access.read {
-                            DirPerms::READ
-                        } else {
-                            DirPerms::empty()
-                        } | if access.write {
-                            DirPerms::MUTATE
-                        } else {
-                            DirPerms::empty()
-                        };
-
-                        let file_perms = if access.read {
-                            FilePerms::READ
-                        } else {
-                            FilePerms::empty()
-                        } | if access.write {
-                            FilePerms::WRITE
-                        } else {
-                            FilePerms::empty()
-                        };
-
-                        ctx = ctx.push_preopened_dir(dir, dir_perms, file_perms, access.path.display().to_string())
-                    },
-                    Err(error) => {
-                        tracing::warn!("file: {path} opened: {error}");
-                    }
-                }
-        }
-
-        ctx
-    }
-
-    fn push_env(&self, mut ctx: WasiCtxBuilder) -> WasiCtxBuilder {
-        for key in &self.env {
-            tracing::info!("env: {}", key);
-            if let Ok(value) = std::env::var(&key) {
-                ctx = ctx.push_env(key, value);
-            } else {
-                tracing::warn!("env: {} not found", key);
-            }
-        }
-
-        ctx
-    }
-
-    fn push_stderr(&self, mut ctx: WasiCtxBuilder) -> WasiCtxBuilder {
-        if self.stderr {
-            tracing::info!("stderr: inherited");
-            ctx = ctx.set_stderr(stdio::stderr());
-        } else {
-            tracing::info!("stderr: sink");
-            ctx = ctx.set_stderr(WritePipe::new(std::io::sink()));
-        }
-        
-        ctx
-    }
-
-    fn push_stdout(&self, mut ctx: WasiCtxBuilder) -> WasiCtxBuilder {
-        if self.stdout {
-            tracing::info!("stdout: inherited");
-            ctx = ctx.set_stdout(stdio::stdout());
-        } else {
-            tracing::info!("stdout: sink");
-            ctx = ctx.set_stdout(WritePipe::new(std::io::sink()));
-        }
-
-        ctx
-    }
-
-    fn push_stdin(&self, mut ctx: WasiCtxBuilder) -> WasiCtxBuilder {
-        if self.stdin {
-            tracing::info!("stdin: inherited");
-            ctx = ctx.set_stdin(stdio::stdin());
-        } else {
-            tracing::info!("stdin: empty");
-            ctx = ctx.set_stdin(ReadPipe::new(std::io::empty()));
-        }
-
-        ctx
+    pub fn push(&self, ctx: WasiCtxBuilder) -> WasiCtxBuilder {
+        self.access.push(ctx)
     }
 }
 
@@ -287,17 +327,11 @@ impl std::fmt::Debug for Context {
 }
 
 impl Context {
-    pub async fn load(path: impl AsRef<Path>) -> Result<Self> {
-        let capabilities = Capabilities::load(&path).await?;
-        Self::from_file(capabilities)
-    }
-
-    #[tracing::instrument]
-    pub fn from_file(capabilities: Capabilities) -> Result<Self> {
+    pub fn new(capabilities: Capabilities) -> Result<Self> {
         let mut table = Table::new();
         let ctx = WasiCtxBuilder::new();
-        let wasi = capabilities.push_all(ctx);
-        let wasi = wasi.build(&mut table)?;
+        let ctx = capabilities.push(ctx);
+        let wasi = ctx.build(&mut table)?;
         Ok(Context { table, wasi })
     }
 }
@@ -351,73 +385,3 @@ impl CallHookHandler<Context> for SpinletHook {
 
 }
 
-pub struct Spinlet {
-    store: Store<Context>,
-    command: Command
-}
-
-impl std::fmt::Debug for Spinlet {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Spinlet")
-            .field("store", &self.store)
-            .finish_non_exhaustive()
-    }
-}
-
-impl Spinlet {
-    pub async fn load(path: impl AsRef<Path>, context: Context) -> Result<Self> {
-        let mut config = Config::new();
-
-        #[cfg(debug_assertions)]
-        {
-            config.debug_info(true);
-            config.wasm_backtrace(true);
-            config.wasm_backtrace_details(WasmBacktraceDetails::Enable);
-        }
-
-        config.wasm_component_model(true);
-        config.async_support(true);
-
-        let engine = Engine::new(&config)?;
-
-        let mut store = Store::new(&engine, context);
-
-        let mut linker = Linker::new(&engine);
-
-        let hook = SpinletHook;
-
-        store.call_hook_async(hook);
-
-        wasmtime_wasi::preview2::wasi::command::add_to_linker(&mut linker)?;
-        
-        let path = path.as_ref().with_extension("wasm");
-        let component = Component::from_file(&engine, path)?;
-        let (command, _instance) = Command::instantiate_async(&mut store, &component, &linker).await?;
-        
-        Ok(Spinlet { store, command })
-    }
-
-    pub fn store(&self) -> &Store<Context> {
-        &self.store
-    }
-
-    pub async fn run(mut self) -> Result<Result<Self, Self>> {
-        match self.command.call_run(&mut self.store).await {
-            Ok(result) => match result {
-                Ok(()) => {
-                    tracing::info!("success");
-                    Ok(Ok(self))
-                },
-                Err(()) => {
-                    tracing::info!("failed");
-                    Ok(Err(self))
-                }
-            },
-            Err(error) => {
-                tracing::error!("{error}");
-                Err(error)
-            }
-        }
-        
-    }
-}

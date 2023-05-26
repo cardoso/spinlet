@@ -1,9 +1,7 @@
-pub mod env;
+mod env;
 pub use anyhow::Result;
-
 mod console;
-
-
+pub use env::Workspace;
 pub use console::Console;
 
 
