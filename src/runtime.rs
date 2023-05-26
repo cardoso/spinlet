@@ -1,65 +1,17 @@
-use anyhow::Result;
-use async_trait::async_trait;
+use std::path::PathBuf;
 use serde::{Serialize, Deserialize};
-use tokio::{fs::File, io::AsyncWriteExt};
-use tokio::io::AsyncReadExt;
-use wasmtime::CallHook;
-
-pub use wasmtime::{
-    Config,
-    Engine,
-    Store,
-    WasmBacktraceDetails,
-    AsContext,
-    AsContextMut,
-    CacheStore,
-    CallHookHandler,
-    HostAbi,
-    ResourceLimiter,
-    ResourceLimiterAsync,
-    WasmParams,
-    WasmResults,
-    WasmRet,
-    WasmTy,
-    IntoFunc,
-    LinearMemory,
-    MemoryCreator,
-    Caller,
-    component::{
-        Component,
-        Linker,
-        LinkerInstance,
-        ComponentNamedList,
-        ComponentType,
-        Lift,
-        Lower,
-    }
-};
-
-pub use wasmtime_wasi::{
+use wasmtime_wasi::{
     Dir, 
     ambient_authority, 
     preview2::{
-        RngCore,
-        InputStream,
-        OutputStream,
-        WasiMonotonicClock,
-        WasiWallClock,
-        Table,
-        WasiCtx,
-        WasiView,
         WasiCtxBuilder,
         DirPerms,
         FilePerms,
-        stream::TableStreamExt,
         pipe::{ReadPipe, WritePipe},
-        stdio::{Stderr, Stdin, Stdout},
-        wasi::command::Command,
-
     }
 };
 
-use std::path::{Path, PathBuf};
+
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FileAccess {
@@ -265,106 +217,3 @@ impl Access {
 fn open_dir(path: &str) -> std::result::Result<Dir, std::io::Error> {
     Dir::open_ambient_dir(path, ambient_authority())
 }
-
-#[derive(Debug, Default, Serialize, Deserialize)]
-pub struct Capabilities {
-    #[serde(default)]
-    args: Vec<String>,
-    #[serde(default)]
-    access: Access,
-}
-
-impl Capabilities {
-    pub async fn load(path: impl AsRef<Path>) -> Result<Self> {
-        let path = path.as_ref().with_extension("toml");
-        if !path.exists() {
-            let capabilities = Capabilities::default();
-            let mut file = File::create(path).await?;
-            let contents = toml::to_string(&capabilities)?;
-            file.write_all(contents.as_bytes()).await?;
-            Ok(capabilities)
-        } else {
-            let mut file = File::open(path).await?;
-            let mut contents = String::new();
-            file.read_to_string(&mut contents).await?;
-            Ok(toml::from_str(&contents)?)
-        }
-    }
-
-    pub fn push(&self, ctx: WasiCtxBuilder) -> WasiCtxBuilder {
-        self.access.push(ctx)
-    }
-}
-
-pub struct Context {
-    table: Table,
-    wasi: WasiCtx,
-}
-
-impl std::fmt::Debug for Context {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Context")
-            .field("table", &self.table)
-            .finish_non_exhaustive()
-    }
-}
-
-impl Context {
-    pub fn new(capabilities: Capabilities) -> Result<Self> {
-        let mut table = Table::new();
-        let ctx = WasiCtxBuilder::new();
-        let ctx = capabilities.push(ctx);
-        let wasi = ctx.build(&mut table)?;
-        Ok(Context { table, wasi })
-    }
-}
-
-impl WasiView for Context {
-    fn table(&self) -> &Table {
-        &self.table
-    }
-    fn table_mut(&mut self) -> &mut Table {
-        &mut self.table
-    }
-    fn ctx(&self) -> &WasiCtx {
-        &self.wasi
-    }
-    fn ctx_mut(&mut self) -> &mut WasiCtx {
-        &mut self.wasi
-    }
-}
-
-#[derive(Debug)]
-pub struct SpinletHook;
-
-#[async_trait]
-impl CallHookHandler<Context> for SpinletHook {
-    #[tracing::instrument]
-    async fn handle_call_event(&self, t: &mut Context, ch: CallHook) -> Result<()> {
-        if ch.entering_host() {
-            tracing::info!("entering host");
-        }
-
-        if ch.exiting_host() {
-            tracing::info!("exiting host");
-        }
-
-        match ch {
-            CallHook::CallingHost => {
-                tracing::info!("calling host");
-            },
-            CallHook::CallingWasm => {
-                tracing::info!("calling wasm");
-            },
-            CallHook::ReturningFromHost => {
-                tracing::info!("returning from host");
-            },
-            CallHook::ReturningFromWasm => {
-                tracing::info!("returning from wasm");
-            }
-        }
-        Ok(())
-    }
-
-}
-
