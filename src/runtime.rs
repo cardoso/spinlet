@@ -60,29 +60,49 @@ impl Default for Capabilities {
 impl Capabilities {
     pub fn build(self, table: &mut Table) -> Result<WasiCtx> {
         let mut ctx = WasiCtxBuilder::new();
-        
         ctx = self.stdin(ctx);
-
         ctx = self.stdout(ctx);
-
         ctx = self.stderr(ctx);
-
         ctx = self.env(ctx);
-
         ctx = self.files(ctx);
-
         ctx.build(table)
     }
 
     fn files(self, mut ctx: WasiCtxBuilder) -> WasiCtxBuilder {
         let authority = cap_std::ambient_authority();
+        let workspace = match cap_std::fs::Dir::open_ambient_dir(".", authority) {
+            Ok(dir) => dir,
+            Err(p) => {
+                log::error!("failed to open workspace directory: {}", p);
+                return ctx;
+            }
+        };
         
         for access in self.access {
             let path = &access.path.display();
-            match cap_std::fs::Dir::open_ambient_dir(&access.path, authority) {
+            match workspace.open_dir(&access.path) {
                 Ok(file) => {
                     log::info!("file: {path}");
-                    ctx = ctx.push_preopened_dir(file, DirPerms::all(), FilePerms::all(), access.path.display().to_string())
+                    let dir_perms = if access.read {
+                        DirPerms::READ
+                    } else {
+                        DirPerms::empty()
+                    } | if access.write {
+                        DirPerms::MUTATE
+                    } else {
+                        DirPerms::empty()
+                    };
+                    let file_perms = if access.read {
+                        FilePerms::READ
+                    } else {
+                        FilePerms::empty()
+                    } | if access.write {
+                        FilePerms::WRITE
+                    } else {
+                        FilePerms::empty()
+                    };
+
+                    ctx = ctx.push_preopened_dir(file, dir_perms, file_perms, access.path.display().to_string())
                 },
                 Err(error) => {
                     log::warn!("file: {path} opened: {error}");
