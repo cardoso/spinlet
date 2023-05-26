@@ -39,8 +39,5 @@ wit-bindgen = { version = "0.6", default-features = false }
 itertools = "0.10"
 ipnet = "2"
 tempfile = "3"
-wasmtime = { git = "https://github.com/bytecodealliance/wasmtime", features = ["component-model"] }
+wasmtime = { git = "https://github.com/bytecodealliance/wasmtime", features = ["component-model", "wat"] }
 wasmtime-wasi = { git = "https://github.com/bytecodealliance/wasmtime", features = ["tokio"] }
-wasmtime-wasi-http = { git = "https://github.com/bytecodealliance/wasmtime" }
-reqwest = "0.11"
-log = "0.4"

@@ -1,10 +1,8 @@
 use std::path::PathBuf;
 
 use clap::Parser;
-use spinlet::runtime::Capabilities;
-use tokio::fs::read_to_string;
-use toml::from_str;
 use spinlet::runtime::{Spinlet, Context};
+
 
 pub const BIN_NAME: &str = "spin let";
 pub const DEFAULT_SPINLET: &str = "shell";
@@ -20,6 +18,17 @@ pub struct Args {
 async fn main() {
     let args = Args::parse();
     let path = PathBuf::new().join(".spinlet/bin").join(args.spinlet);
-    let spinlet = Spinlet::load(path).await.expect("Failed to create context");
-    spinlet.run().await.expect("Spinlet failed");
+    let context = Context::load(&path).await.expect("Failed to create context");
+    
+    
+    let spinlet = Spinlet::load(&path, context).await.expect("Failed to load spinlet");
+
+    match spinlet.run().await {
+        Ok(Ok(spinlet)) => tracing::info!("{spinlet:#?}"),
+        Ok(Err(spinlet)) => tracing::warn!("{spinlet:#?}"),
+        Err(error) => tracing::error!("{error}")
+    };
+
+
+    
 }

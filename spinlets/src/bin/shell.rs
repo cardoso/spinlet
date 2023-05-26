@@ -33,7 +33,7 @@ fn parse(vfs: &mut env::Workspace, input: &str) -> String {
             }
         },
         "ls" => match vfs.ls() {
-            Ok(files) => files.iter().map(|file| file.display().to_string()).collect::<Vec<_>>().join("\n"),
+            Ok(files) => files.iter().flat_map(|file| file.file_name()?.to_str()).collect::<Vec<_>>().join("\n"),
             Err(e) => format!("Failed to list files: {}", e)
         },
         "pwd" => match vfs.pwd() {

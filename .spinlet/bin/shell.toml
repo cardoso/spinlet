@@ -4,7 +4,15 @@ stderr = true
 args = []
 env = []
 
-[[access]]
+[[access.dir]]
 path = "."
 read = true
-write = true
+
+[[access.file]]
+path = "Cargo.toml"
+read = true
+
+[[access.dir]]
+path = "registry"
+read = true
+
