@@ -2,11 +2,6 @@ pub use std::env::*;
 use std::path::{Path, PathBuf};
 use anyhow::Result;
 
-pub fn get_current_dir() {
-    let current_dir = std::env::current_dir().unwrap();
-    println!("The current directory is {}", current_dir.display());
-}
-
 #[derive(Debug)]
 pub struct Workspace {
     root: PathBuf,

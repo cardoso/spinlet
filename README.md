@@ -69,7 +69,6 @@ SPIN_VERSION_PATCH: 0
 SPIN_VERSION_PRE: pre0
 ```
 
-
 - [x] `std::fs::read_dir`
 
 ```rust
