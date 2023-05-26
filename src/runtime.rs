@@ -36,48 +36,26 @@ pub use wasmtime::{
     }
 };
 
-use wasmtime_wasi::Dir;
-pub use wasmtime_wasi::preview2::{
-    RngCore,
-    InputStream,
-    OutputStream,
-    WasiMonotonicClock,
-    WasiWallClock,
-    Table,
-    WasiCtx,
-    WasiView,
-    WasiCtxBuilder,
-    DirPerms,
-    FilePerms,
-    pipe::{ReadPipe, WritePipe},
-    stdio::{Stderr, Stdin, Stdout},
-    stream::TableStreamExt,
-    wasi::{
-        filesystem::Host as FilesystemHost,
-        streams::Host as StreamsHost,
-        random::Host as RandomHost,
-        poll::Host as PollHost,
-        wall_clock::Host as WallClockHost,
-        monotonic_clock::Host as MonotonicClockHost,
-        timezone::Host as TimezoneHOst,
-        environment::Host as EnvironmentHost,
-        preopens::Host as PreopensHost,
-        exit::Host as ExitHost,
-        stderr::Host as StderrHost,
-        stdin::Host as StdinHost,
-        stdout::Host as StdoutHost,
-        insecure_random::Host as InsecureRandomHost,
-        insecure_random_seed::Host as InsecureRandomSeedHost,
-        command::{
-            Command,
-            instance_network::Host as InstanceNetworkHost,
-            ip_name_lookup::Host as IpNameLookupHost,
-            network::Host as NetworkHost,
-            tcp::Host as TcpHost,
-            udp::Host as UdpHost,
-            udp_create_socket::Host as UdpCreateSocketHost,
-            tcp_create_socket::Host as TcpCreateSocketHost,
-        }
+pub use wasmtime_wasi::{
+    Dir, 
+    ambient_authority, 
+    preview2::{
+        RngCore,
+        InputStream,
+        OutputStream,
+        WasiMonotonicClock,
+        WasiWallClock,
+        Table,
+        WasiCtx,
+        WasiView,
+        WasiCtxBuilder,
+        DirPerms,
+        FilePerms,
+        stream::TableStreamExt,
+        pipe::{ReadPipe, WritePipe},
+        stdio::{Stderr, Stdin, Stdout},
+        wasi::command::Command,
+
     }
 };
 
@@ -165,6 +143,7 @@ impl StdioAccess {
     }
 
     fn push_stdin(&self, mut ctx: WasiCtxBuilder) -> WasiCtxBuilder {
+
         if self.stdin {
             tracing::info!("stdin: inherited");
             ctx = ctx.set_stdin(ReadPipe::new(std::io::stdin()));
@@ -191,8 +170,8 @@ pub struct Access {
 
 impl Access {
     pub fn push(&self, mut ctx: WasiCtxBuilder) -> WasiCtxBuilder {
-        let authority = cap_std::ambient_authority();
-        let workspace = match cap_std::fs::Dir::open_ambient_dir(".", authority) {
+        let path = ".";
+        let workspace = match open_dir(path) {
             Ok(dir) => dir,
             Err(p) => {
                 tracing::error!("failed to open workspace directory: {}", p);
@@ -281,6 +260,10 @@ impl Access {
 
         ctx
     }
+}
+
+fn open_dir(path: &str) -> std::result::Result<Dir, std::io::Error> {
+    Dir::open_ambient_dir(path, ambient_authority())
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]

@@ -2,7 +2,7 @@ use std::path::Path;
 
 use runtime::SpinletHook;
 use wasmtime::{Engine, WasmBacktraceDetails, Store, Result, component::{Linker, Component}, Config};
-use wasmtime_wasi::preview2::wasi::command::Command;
+use wasmtime_wasi::preview2::wasi::command::{self, Command};
 
 mod runtime;
 mod cli;
@@ -25,7 +25,8 @@ impl std::fmt::Debug for Spinlet {
 }
 
 impl Spinlet {
-    pub async fn load(path: impl AsRef<Path>, context: Context) -> Result<Self> {
+    #[tracing::instrument]
+    pub async fn load(path: &Path, context: Context) -> Result<Self> {
         let mut config = Config::new();
 
         #[cfg(debug_assertions)]
@@ -48,12 +49,12 @@ impl Spinlet {
 
         store.call_hook_async(hook);
 
-        wasmtime_wasi::preview2::wasi::command::add_to_linker(&mut linker)?;
+        command::add_to_linker(&mut linker)?;
         
-        let path = path.as_ref().with_extension("wasm");
+        
+        let path = path.with_extension("wasm");
         let component = Component::from_file(&engine, path)?;
         let (command, _instance) = Command::instantiate_async(&mut store, &component, &linker).await?;
-        
         Ok(Spinlet { store, command })
     }
 
@@ -61,6 +62,7 @@ impl Spinlet {
         &self.store
     }
 
+    #[tracing::instrument]
     pub async fn run(mut self) -> Result<Result<Self, Self>> {
         match self.command.call_run(&mut self.store).await {
             Ok(result) => match result {
@@ -69,7 +71,7 @@ impl Spinlet {
                     Ok(Ok(self))
                 },
                 Err(()) => {
-                    tracing::info!("failed");
+                    tracing::warn!("failed");
                     Ok(Err(self))
                 }
             },
