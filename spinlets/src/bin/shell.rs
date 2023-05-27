@@ -1,10 +1,16 @@
 use spinlets::*;
 
 fn main() {
+    if cfg!(not(target_arch = "wasm32")) {
+        println!("Running this natively is not a good idea!");
+        return;
+    }
+
     let mut spin = Spinlet::get();
 
     loop {
-        spin.console().print("> ").expect("Failed to print prompt");
+        let console = &spin.console();
+        console.print("> ").expect("Failed to print prompt");
 
         let input = spin.console().read_line().expect("Failed to read line");
         
@@ -20,7 +26,7 @@ fn main() {
 
 fn parse(vfs: &mut Workspace, input: &str) -> String {
     let mut args = input.split_whitespace();
-    let command = args.next().expect("No command");
+    let Some(command) = args.next() else { return "".to_string() };
     match command {
         "cd" => match args.next() {
             Some(dir) => match vfs.cd(dir) {

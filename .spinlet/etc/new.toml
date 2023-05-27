@@ -1,0 +1,11 @@
+[[access.file]]
+path = ".gitignore"
+read = true
+
+[[access.env]]
+key = "PATH"
+
+[access.stdio]
+stdin = true
+stdout = true
+stderr = true
