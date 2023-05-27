@@ -6,6 +6,7 @@ Spinlet is a plugin and runtime for building and running wasm32-wasi cli compone
 
 Spinlet requires the following tools to be installed:
 
+- [Rust](https://www.rust-lang.org/) >= 1.70.0
 - [Spin](https://github.com/fermyon/spin) >= 1.2.0
 - [wasm-tools](https://github.com/wasmtime/wasm-tools) >= 1.0.35
 - [spin-pluginify](https://github.com/itowlson/spin-pluginify) >= [PR #6](https://github.com/itowlson/spin-pluginify/pull/6)
