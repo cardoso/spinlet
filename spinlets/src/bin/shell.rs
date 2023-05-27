@@ -1,6 +1,6 @@
 use spinlets::*;
 
-const PROMPT: &str = "> ";
+const PROMPT: &str = "$ ";
 
 fn main() {
     if cfg!(not(target_arch = "wasm32")) {
@@ -10,23 +10,17 @@ fn main() {
 
     let mut spin = Spinlet::get();
 
+    
+
     loop {
-        let input = prompt(&spin);
+        print_prompt(&spin);
+        let input = read_line(&spin);
         
         if should_exit(&input) { break; }
 
-        execute(&mut spin, input);
+        let output = eval(&mut spin, &input);
+        print_output(&mut spin, output);
     }
-}
-
-fn execute(spin: &mut Spinlet, input: String) {
-    let output = eval(spin, &input);
-    print_output(spin, output);
-}
-
-fn prompt(spin: &Spinlet) -> String {
-    print_prompt(spin);
-    read_line(spin)
 }
 
 fn should_exit(input: &str) -> bool {

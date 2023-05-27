@@ -1,7 +1,6 @@
 use std::path::Path;
 
-use wasmtime::{Engine, component::{Linker, Component}, Store, Config};
-use anyhow::Result;
+use wasmtime::{Result, Engine, component::{Linker, Component}, Store, Config};
 use wasmtime_wasi::preview2::{wasi::command::{self, Command}, WasiView};
 
 pub struct Executor<T: WasiView> {
