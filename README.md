@@ -18,22 +18,20 @@ Spinlet requires the following tools to be installed:
 - [x] access control
 
 ```toml
-[access.stdio]
-stdin = true
-stdout = true
-stderr = true
-
-[[access.file]]
-path = "Cargo.toml"
-read = true
-write = true
-
-[[access.dir]]
+[[access.fs.dir]]
 path = "."
 read = true
 
-[[access.env]]
+[[access.env.var]]
 key = "HOME"
+
+[access.io.stdin]
+enabled = true
+[access.io.stdout]
+enabled = true
+[access.io.stderr]
+enabled = true
+
 ```
 
 - [x] `std::env::args`
