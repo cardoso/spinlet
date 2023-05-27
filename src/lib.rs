@@ -26,6 +26,6 @@ impl Spinlet {
     }
     
     pub async fn run(&mut self) -> Result<Result<(), ()>> {
-        Ok(self.executor.run(&mut self.command).await?)
+        self.executor.run(&mut self.command).await
     }
 }
