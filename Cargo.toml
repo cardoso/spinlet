@@ -6,9 +6,12 @@ name = "spinlet"
 version = "0.1.0"
 edition = "2021"
 authors = ["Matheus Cardoso <matheus@cardo.so>"]
+repository = "https://github.com/cardoso/spinlet"
+homepage = "https://github.com/cardoso/spinlet"
 
 [dependencies]
 clap = { version = "4", features = ["unicode", "env", "derive", "cargo", "string", "unstable-v5", "wrap_help", "unstable-styles"] }
+human-panic = "1"
 
 lazy_static = "1"
 tracing = "0.1"

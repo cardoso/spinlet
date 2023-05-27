@@ -1,3 +1,4 @@
+use schemars::JsonSchema;
 use serde::{Serialize, Deserialize};
 use wasmtime_wasi::preview2::WasiCtxBuilder;
 
@@ -9,7 +10,7 @@ use stdin::StdinAccess;
 use stdout::StdoutAccess;
 use stderr::StderrAccess;
 
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize, JsonSchema)]
 pub struct IoAccess {
     #[serde(default)]
     stdin: StdinAccess,

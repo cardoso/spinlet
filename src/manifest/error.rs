@@ -9,7 +9,6 @@ pub enum ManifestError {
     TomlSerialize(toml::ser::Error),
     TomlDeserialize(toml::de::Error),
     Io(std::io::Error),
-
 }
 
 impl From<wasmtime::Error> for ManifestError {

@@ -1,0 +1,18 @@
+[access.fs]
+file = []
+dir = []
+
+[access.env]
+var = []
+
+[access.env.args]
+enabled = false
+
+[access.io.stdin]
+enabled = false
+
+[access.io.stdout]
+enabled = false
+
+[access.io.stderr]
+enabled = false

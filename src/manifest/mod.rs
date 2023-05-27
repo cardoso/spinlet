@@ -1,5 +1,6 @@
 use std::path::Path;
 
+use schemars::JsonSchema;
 use serde::{Serialize, Deserialize};
 use tokio::{fs::File, io::{AsyncReadExt, AsyncWriteExt}};
 use wasmtime_wasi::preview2::WasiCtxBuilder;
@@ -9,7 +10,7 @@ mod access;
 
 use access::Access;
 
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize, JsonSchema)]
 pub struct Manifest {
     #[serde(default)]
     access: Access,
@@ -29,7 +30,7 @@ impl Manifest {
         if !path.exists() {
             let capabilities = Manifest::default();
             let mut file = File::create(path).await?;
-            let contents = toml::to_string(&capabilities)?;
+            let contents = toml::to_string_pretty(&capabilities)?;
             file.write_all(contents.as_bytes()).await?;
             Ok(capabilities)
         } else {

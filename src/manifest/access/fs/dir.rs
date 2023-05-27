@@ -1,8 +1,9 @@
 use std::path::{PathBuf, Path};
+use schemars::JsonSchema;
 use serde::{Serialize, Deserialize};
 use wasmtime_wasi::{preview2::{WasiCtxBuilder, DirPerms, FilePerms}, Dir, ambient_authority};
 
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize, JsonSchema)]
 pub struct DirAccess {
     path: PathBuf,
     #[serde(default)]

@@ -1,5 +1,6 @@
 use std::result::Result;
 
+use schemars::JsonSchema;
 use serde::{Serialize, Deserialize};
 use wasmtime_wasi::preview2::WasiCtxBuilder;
 
@@ -14,7 +15,7 @@ use fs::FsAccess;
 
 pub use error::AccessError;
 
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize, JsonSchema)]
 pub struct Access {
     #[serde(default)]
     fs: FsAccess,

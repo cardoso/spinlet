@@ -1,13 +1,14 @@
 mod dir;
 mod file;
 
+use schemars::JsonSchema;
 use serde::{Serialize, Deserialize};
 use wasmtime_wasi::preview2::WasiCtxBuilder;
 
 use dir::DirAccess;
 use file::FileAccess;
 
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize, JsonSchema)]
 pub struct FsAccess {
     #[serde(default)]
     file: Vec<FileAccess>,

@@ -1,6 +1,15 @@
 use spinlets::*;
 
 const PROMPT: &str = "$ ";
+const HELP: &&str = &"
+    cd <dir> - change directory,
+    ls - list files,
+    pwd - print working directory,
+    cat <file> - print file contents,
+    env - print environment variables,
+    help - print this help message,
+    exit - exit the shell
+";
 
 fn main() {
     if cfg!(not(target_arch = "wasm32")) {
@@ -48,8 +57,28 @@ fn eval(spin: &mut Spinlet, input: &str) -> String {
         "pwd" => pwd(spin),
         "cat" => cat(args, spin),
         "env" => env(),
+        "help" => help(spin, input),
         cmd => unknown(cmd)
     }
+}
+
+fn help(spin: &Spinlet, input: &str) -> String {
+    let root = spin.workspace().root().display();
+    
+    
+    let output = match input {
+        "help" => HELP.to_string(),
+        "help cd" => "cd <dir> - change directory".to_string(),
+        "help ls" => "ls - list files".to_string(),
+        "help pwd" => "pwd - print working directory".to_string(),
+        "help cat" => "cat <file> - print file contents".to_string(),
+        "help env" => "env - print environment variables".to_string(),
+        "help help" => "help - print this help message".to_string(),
+        "help exit" => "exit - exit the shell".to_string(),
+        input => format!("Unknown help topic: {input}")
+    }.to_string();
+
+    format!("[{root}] {output}")
 }
 
 fn unknown(command: &str) -> String {

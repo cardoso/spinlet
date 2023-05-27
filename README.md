@@ -11,6 +11,15 @@ Spinlet requires the following tools to be installed:
 - [wasm-tools](https://github.com/wasmtime/wasm-tools) >= 1.0.35
 - [spin-pluginify](https://github.com/itowlson/spin-pluginify) >= [PR #6](https://github.com/itowlson/spin-pluginify/pull/6)
 
+## Installation
+
+```bash
+git clone https://github.com/cardoso/spinlet
+cd spinlet
+spin pluginify -i
+spin let
+```
+
 ## Status
 
 ### Sandboxed Environment

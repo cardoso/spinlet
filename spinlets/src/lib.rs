@@ -23,6 +23,10 @@ impl Spinlet {
         &mut self.workspace
     }
 
+    pub fn workspace(&self) -> &env::Workspace {
+        &self.workspace
+    }
+
     pub fn console(&self) -> &Console {
         &self.console
     }

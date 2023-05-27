@@ -1,7 +1,8 @@
+use schemars::JsonSchema;
 use serde::{Serialize, Deserialize};
 use wasmtime_wasi::preview2::{pipe::WritePipe, WasiCtxBuilder};
 
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize, JsonSchema)]
 pub struct StdoutAccess {
     #[serde(default)]
     enabled: bool,
