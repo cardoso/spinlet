@@ -23,6 +23,7 @@ schemars = { version = "0.8", features = ["derive"] }
 similar = "2"
 
 tokio = { version = "1", features = ["full"] }
+
 wit-bindgen = { version = "0.7" }
 wasmtime = { git = "https://github.com/bytecodealliance/wasmtime", features = ["component-model", "wat"] }
 wasmtime-wasi = { git = "https://github.com/bytecodealliance/wasmtime", features = ["tokio"] }

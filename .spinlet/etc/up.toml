@@ -5,11 +5,11 @@ read = true
 [[access.env.var]]
 key = "HOME"
 
+[access.env.args]
+enabled = true
 [access.io.stdin]
 enabled = true
-
 [access.io.stdout]
 enabled = true
-
 [access.io.stderr]
 enabled = true

@@ -1,5 +1,4 @@
 use std::path::Path;
-
 use wasmtime::{Result, Engine, component::{Linker, Component}, Store, Config};
 use wasmtime_wasi::preview2::{wasi::command::{self, Command}, WasiView};
 
@@ -27,7 +26,8 @@ impl<T: WasiView> Executor<T> {
     }
 
     pub async fn load(&mut self, path: &Path) -> Result<Command> {
-        let component = Component::from_file(&self.engine, path)?;
+        let binary = tokio::fs::read(path).await?;
+        let component = Component::from_binary(&self.engine, &binary)?;
         let (command, _instance) = Command::instantiate_async(&mut self.store, &component, &mut self.linker).await?;
         Ok(command)
     }
