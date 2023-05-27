@@ -4,8 +4,8 @@ use serde::{Serialize, Deserialize};
 use tokio::{fs::File, io::{AsyncReadExt, AsyncWriteExt}};
 use wasmtime_wasi::preview2::WasiCtxBuilder;
 
-pub mod error;
-pub mod access;
+mod error;
+mod access;
 
 use access::Access;
 
@@ -16,9 +16,9 @@ pub struct Manifest {
 }
 
 impl Manifest {
-    pub fn provide(&self, mut ctx: WasiCtxBuilder) -> std::result::Result<WasiCtxBuilder, error::ManifestError> {
-        ctx = self.access.provide(ctx)?;
-        Ok(ctx)
+    pub fn provide(&self) -> std::result::Result<WasiCtxBuilder, error::ManifestError> {
+        let ctx = WasiCtxBuilder::new();
+        Ok(self.access.provide(ctx)?)
     }
 }
 

@@ -1,12 +1,10 @@
+mod error;
 
 use wasmtime_wasi::preview2::{Table, WasiCtx, WasiCtxBuilder};
 use wasmtime::Result;
 
-mod error;
-
 use wasmtime_wasi::preview2::WasiView;
 use error::ContextError;
-
 
 pub struct Context {
     table: Table,

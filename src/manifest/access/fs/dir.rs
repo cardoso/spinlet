@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{PathBuf, Path};
 use serde::{Serialize, Deserialize};
 use wasmtime_wasi::{preview2::{WasiCtxBuilder, DirPerms, FilePerms}, Dir, ambient_authority};
 
@@ -22,8 +22,8 @@ impl DirAccess {
         };
 
         let ambient_authority = ambient_authority();
-        let path = self.path.display().to_string();
-        let dir = Dir::open_ambient_dir(&path, ambient_authority)?;
-        Ok(ctx.push_preopened_dir(dir, perms, file_perms, path))
+        let dir = Dir::open_ambient_dir(&self.path, ambient_authority)?;
+        let path = Path::new("/").join(&self.path);
+        Ok(ctx.push_preopened_dir(dir, perms, file_perms, path.display().to_string()))
     }
 }

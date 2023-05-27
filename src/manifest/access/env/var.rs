@@ -6,8 +6,7 @@ use wasmtime_wasi::preview2::WasiCtxBuilder;
 
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct VarAccess {
-    key: String,
-    value: String,
+    key: String
 }
 
 
