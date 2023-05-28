@@ -6,8 +6,3 @@ pub fn main() {
     }
     println!("{echo}")
 }
-
-#[export_name = "wizer.initialize"]
-pub extern "C" fn init() {
-    // Your initialization code goes here...
-}

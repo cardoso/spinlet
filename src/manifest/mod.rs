@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::{path::Path, result::Result};
 
 use schemars::JsonSchema;
 use serde::{Serialize, Deserialize};
@@ -10,6 +10,8 @@ mod access;
 
 use access::Access;
 
+pub use error::ManifestError;
+
 #[derive(Debug, Default, Serialize, Deserialize, JsonSchema)]
 pub struct Manifest {
     #[serde(default)]
@@ -17,15 +19,14 @@ pub struct Manifest {
 }
 
 impl Manifest {
-    pub fn provide(&self) -> std::result::Result<WasiCtxBuilder, error::ManifestError> {
-        let ctx = WasiCtxBuilder::new();
+    pub fn provide(&self, ctx: WasiCtxBuilder) -> Result<WasiCtxBuilder, ManifestError> {
         Ok(self.access.provide(ctx)?)
     }
 }
 
 impl Manifest {
 
-    pub async fn load(path: impl AsRef<Path>) -> std::result::Result<Self, error::ManifestError> {
+    pub async fn load(path: impl AsRef<Path>) -> Result<Self, ManifestError> {
         let path = path.as_ref().with_extension("toml");
         if !path.exists() {
             let capabilities = Manifest::default();

@@ -2,8 +2,8 @@ name = "let"
 version = "0.1.6"
 spin_compatibility = ">=0.8"
 license = "MIT OR Apache-2.0"
-package = "./target/release/let"
+package = "./target/debug/let"
 
 [build]
 command = "sh"
-args = ["build.sh"]
+args = ["debug.sh"]

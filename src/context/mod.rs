@@ -1,9 +1,7 @@
 mod error;
 
-use wasmtime_wasi::preview2::{Table, WasiCtx, WasiCtxBuilder};
+use wasmtime_wasi::preview2::{Table, WasiView, WasiCtx, WasiCtxBuilder};
 use wasmtime::Result;
-
-use wasmtime_wasi::preview2::WasiView;
 use error::ContextError;
 
 pub struct Context {
@@ -12,9 +10,9 @@ pub struct Context {
 }
 
 impl Context {
-    pub fn new(ctx: WasiCtxBuilder) -> Result<Self, ContextError> {
+    pub fn new(wasi: WasiCtxBuilder) -> Result<Self, ContextError> {
         let mut table = Table::new();
-        let wasi = ctx.build(&mut table)?;
+        let wasi = wasi.build(&mut table)?;
         Ok(Self { table, wasi })
     }
 }

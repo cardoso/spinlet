@@ -19,8 +19,6 @@ fn main() {
 
     let mut spin = Spinlet::get();
 
-    
-
     loop {
         print_prompt(&spin);
         let input = read_line(&spin);

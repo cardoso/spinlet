@@ -1486,6 +1486,8 @@ dependencies = [
 name = "spinlet"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
+ "backtrace",
  "clap",
  "human-panic",
  "lazy_static",
