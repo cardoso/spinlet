@@ -1,0 +1,11 @@
+[package]
+name = "spinlet-config"
+version = "0.2.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+schemars = { version = "0.8", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }

@@ -1492,6 +1492,7 @@ dependencies = [
  "serde",
  "serde_json",
  "similar",
+ "spinlet-config",
  "spinlet-manifest",
  "tokio",
  "toml 0.7.4",
@@ -1500,6 +1501,14 @@ dependencies = [
  "wasmtime",
  "wasmtime-wasi",
  "wit-bindgen",
+]
+
+[[package]]
+name = "spinlet-config"
+version = "0.2.0"
+dependencies = [
+ "schemars",
+ "serde",
 ]
 
 [[package]]

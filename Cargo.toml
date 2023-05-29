@@ -18,6 +18,7 @@ categories = ["command-line-utilities"]
 keywords = ["wasm", "wasi", "cli", "plugin", "spin"]
 
 [dependencies]
+spinlet-config = { path = "crates/config" }
 spinlet-manifest = { path = "crates/manifest" }
 clap = { version = "4", features = ["unicode", "env", "derive", "cargo", "string", "unstable-v5", "wrap_help", "unstable-styles"] }
 human-panic = "1"
