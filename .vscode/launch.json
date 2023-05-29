@@ -1,0 +1,342 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'spinlets'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=spinlets"
+                ],
+                "filter": {
+                    "name": "spinlets",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'up'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=up",
+                    "--package=spinlets"
+                ],
+                "filter": {
+                    "name": "up",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'up'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=up",
+                    "--package=spinlets"
+                ],
+                "filter": {
+                    "name": "up",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'boot'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=boot",
+                    "--package=spinlets"
+                ],
+                "filter": {
+                    "name": "boot",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'boot'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=boot",
+                    "--package=spinlets"
+                ],
+                "filter": {
+                    "name": "boot",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'shell'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=shell",
+                    "--package=spinlets"
+                ],
+                "filter": {
+                    "name": "shell",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'shell'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=shell",
+                    "--package=spinlets"
+                ],
+                "filter": {
+                    "name": "shell",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'update'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=update",
+                    "--package=spinlets"
+                ],
+                "filter": {
+                    "name": "update",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'update'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=update",
+                    "--package=spinlets"
+                ],
+                "filter": {
+                    "name": "update",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'echo'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=echo",
+                    "--package=spinlets"
+                ],
+                "filter": {
+                    "name": "echo",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'echo'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=echo",
+                    "--package=spinlets"
+                ],
+                "filter": {
+                    "name": "echo",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'watch'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=watch",
+                    "--package=spinlets"
+                ],
+                "filter": {
+                    "name": "watch",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'watch'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=watch",
+                    "--package=spinlets"
+                ],
+                "filter": {
+                    "name": "watch",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'new'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=new",
+                    "--package=spinlets"
+                ],
+                "filter": {
+                    "name": "new",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'new'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=new",
+                    "--package=spinlets"
+                ],
+                "filter": {
+                    "name": "new",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'spinlet'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=spinlet"
+                ],
+                "filter": {
+                    "name": "spinlet",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'let'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=let",
+                    "--package=spinlet"
+                ],
+                "filter": {
+                    "name": "let",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'let'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=let",
+                    "--package=spinlet"
+                ],
+                "filter": {
+                    "name": "let",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

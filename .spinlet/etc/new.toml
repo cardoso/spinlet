@@ -1,11 +1,13 @@
-[[access.file]]
-path = ".gitignore"
+[[access.fs.dir]]
+path = "."
 read = true
-
-[[access.env]]
-key = "PATH"
-
-[access.stdio]
-stdin = true
-stdout = true
-stderr = true
+[access.env.var]
+keys = ["HOME"]
+[access.env.args]
+enabled = true
+[access.io.stdin]
+enabled = true
+[access.io.stdout]
+enabled = true
+[access.io.stderr]
+enabled = true

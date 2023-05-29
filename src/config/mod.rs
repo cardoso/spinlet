@@ -1,28 +1,34 @@
-use std::path::{Path, PathBuf};
 
-use clap::Parser;
+
+use std::{path::{Path, PathBuf}, collections::HashMap};
 use serde::{Serialize, Deserialize};
 use anyhow::Result;
 
-#[derive(Parser, Serialize, Deserialize, Debug)]
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
-    #[arg(default_value = ".spinlet")]
+    name: String,
+    version: String,
+    repository: String,
     root: String,
-    #[arg(default_value = "etc")]
     etc: String,
-    #[arg(default_value = "toml")]
     etc_ext: String,
-    #[arg(default_value = "bin")]
     bin: String,
-    #[arg(default_value = "wasm")]
     bin_ext: String,
-    #[arg(default_value = "lib")]
     lib: String,
-    #[arg(default_value = "wasm")]
     lib_ext: String,
+    alias: HashMap<String, String>,
 }
 
 impl Config {
+    pub fn parse(str: &str) -> Result<Self> {
+        Ok(toml::from_str(str)?)
+    }
+
+    pub fn root(&self) -> &str {
+        &self.root
+    }
+
     pub fn manifest(&self, spinlet: &str) -> PathBuf {
         Path::new(&self.root)
             .join(&self.etc)
@@ -38,7 +44,7 @@ impl Config {
     }
 
     pub fn list_spinlets(&self) -> Result<Vec<String>> {
-        let bin = Path::new(&self.root).join(&self.bin);
+        let bin = Path::new(&self.name).join(&self.bin);
         let mut spinlets = vec![];
         for entry in bin.read_dir()? {
             let Ok(entry) = entry else { continue };
