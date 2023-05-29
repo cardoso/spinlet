@@ -8,5 +8,5 @@ pub fn main() {
         spin.print(" - ");
         spin.print_line(&arg);
     }
-    spin.print_line("---------AFTER BUILD-----------");
+    spin.print_line("---------BEFORE BUILD-----------");
 }
