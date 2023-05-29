@@ -28,7 +28,7 @@ impl Manifest {
         &self.access
     }
     
-    pub fn hook(&self, name: &str) -> Option<&Hook> {
-        self.hook.get(name)
+    pub fn hook(&self, name: impl AsRef<str>) -> Option<&Hook> {
+        self.hook.get(name.as_ref())
     }
 }

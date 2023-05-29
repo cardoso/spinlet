@@ -1,5 +1,5 @@
 name = "let"
-version = "0.1.6"
+version = "0.2.0"
 spin_compatibility = ">=0.8"
 license = "MIT OR Apache-2.0"
 package = "./target/debug/let"

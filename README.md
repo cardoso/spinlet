@@ -23,9 +23,24 @@ spin let
 
 ## Status
 
+### Hooks
+
+- [x] `spin let [command]`
+
+Spinlets can now hook into spin's native commands by specifying in their manifest:
+
+```toml
+[hook.build.after]
+enabled = true
+[hook.build.before]
+enabled = true
+```
+
 ### Sandboxed Environment
 
 - [x] access control
+
+Spinlet's manifest allows users to specify which environment variables, directories, and files the plugin has access to.
 
 ```toml
 [[access.fs.dir]]
@@ -35,6 +50,8 @@ read = true
 [[access.env.var]]
 key = "HOME"
 
+[access.env.args]
+enabled = true
 [access.io.stdin]
 enabled = true
 [access.io.stdout]
