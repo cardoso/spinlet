@@ -10,7 +10,7 @@ pub struct Context {
 }
 
 impl Context {
-    pub fn new(manifest: Manifest, root: Dir) -> Self {
+    pub fn new(manifest: &Manifest, root: Dir) -> Self {
         let mut builder = WasiCtxBuilder::new();
 
         for key in manifest.access().env().var().keys() {
@@ -19,7 +19,7 @@ impl Context {
         }
 
         if manifest.access().env().args().enabled() {
-            for arg in std::env::args() {
+            for arg in std::env::args().skip(1) {
                 builder = builder.push_arg(arg);
             }
         }

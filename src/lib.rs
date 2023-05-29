@@ -2,12 +2,10 @@ pub use spinlet_config as config;
 pub use spinlet_manifest as manifest;
 
 mod loader;
-mod cli;
+pub mod spin;
 mod runner;
 mod context;
 
-
-pub use cli::Args;
 pub use config::Config;
 pub use context::Context;
 pub use loader::Loader;

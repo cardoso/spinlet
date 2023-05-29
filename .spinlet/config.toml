@@ -1,9 +1,6 @@
 name = "spinlet"
 version = "0.2.0"
 repository = "https://github.com/cardoso/spinlet"
-
-default = "shell"
-
 root = ".spinlet"
 etc = "etc"
 etc_ext = "toml"
@@ -12,16 +9,23 @@ bin_ext = "wasm"
 lib = "lib"
 lib_ext = "wasm"
 
-[alias]
-add = "spin add"
-build = "spin build"
-cloud = "spin cloud"
-deploy = "spin deploy"
-help = "spin help"
-login = "spin login"
-new = "spin new"
-plugins = "spin plugins"
-registry = "spin registry"
-templates = "spin templates"
-up = "spin up"
-watch = "spin watch"
+[current]
+name = "let"
+[child]
+name = "shell"
+
+[parent]
+name = "spin"
+[parent.alias]
+add = "add"
+build = "build"
+cloud = "cloud"
+deploy = "deploy"
+help = "help"
+login = "login"
+new = "new"
+plugins = "plugins"
+registry = "registry"
+templates = "templates"
+up = "up"
+watch = "watch"

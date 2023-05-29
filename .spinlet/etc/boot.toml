@@ -1,3 +1,6 @@
+[hook.pre.build]
+enabled = true
+
 [[access.fs.dir]]
 path = "."
 read = true

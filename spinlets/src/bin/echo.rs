@@ -1,8 +1,12 @@
+use spinlets::Spinlet;
+
 pub fn main() {
-    let args = std::env::args().skip(1).collect::<Vec<_>>();
-    let mut echo = args.join(" ");
-    for (key, value) in std::env::vars() {
-        echo = echo.replace(&key, &value);
+    let spin = Spinlet::get();
+    spin.print_line("---------BEFORE BUILD-----------");
+    spin.print_line("Your build will run with the following arguments:");
+    for arg in std::env::args() {
+        spin.print(" - ");
+        spin.print_line(&arg);
     }
-    println!("{echo}")
+    spin.print_line("---------AFTER BUILD-----------");
 }
