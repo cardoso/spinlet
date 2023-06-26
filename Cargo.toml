@@ -3,7 +3,7 @@ members = ["spinlets", "registry", "crates/*"]
 
 [package]
 name = "spinlet"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 description = "Spinlet is a plugin and runtime for building and running wasm32-wasi cli components as plugins for Spin."
 readme = "README.md"
@@ -25,7 +25,6 @@ human-panic = "1"
 anyhow = "1"
 backtrace = "0.3"
 
-
 lazy_static = "1"
 tracing = "0.1"
 
@@ -40,6 +39,6 @@ cap-primitives = "1"
 
 tokio = { version = "1", features = ["full"] }
 
-wit-bindgen = { version = "0.7" }
+reqwest = "0.11"
 wasmtime = { git = "https://github.com/bytecodealliance/wasmtime", features = ["component-model", "wat"] }
 wasmtime-wasi = { git = "https://github.com/bytecodealliance/wasmtime", features = ["tokio"] }

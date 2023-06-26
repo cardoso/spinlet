@@ -43,7 +43,7 @@ impl Context {
                 (false, true) => DirPerms::MUTATE,
                 (false, false) => DirPerms::empty(),
             };
-            let file_perms = FilePerms::empty();
+            let file_perms = FilePerms::all();
             let path = dir.path();
             let Ok(dir) = root.open_dir(path) else {
                 continue;
@@ -65,7 +65,7 @@ impl Context {
 
             let mut options = OpenOptions::new();
             let options = options.read(file.read()).write(file.write());
-            let Ok(file) = root.open_with(path, &options) else {
+            let Ok(file) = root.open_with(path, options) else {
                 continue;
             };
 

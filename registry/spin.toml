@@ -6,9 +6,9 @@ trigger = { type = "http", base = "/" }
 version = "0.1.0"
 
 [[component]]
-id = "spinlets-registry"
-source = "target/wasm32-wasi/release/spinlets_registry.wasm"
-allowed_http_hosts = []
+id = "spinlet-registry"
+source = "../target/wasm32-wasi/release/spinlet_registry.wasm"
+files = [{ source = ".spinlet", destination = "/" }]
 [component.trigger]
 route = "/..."
 [component.build]

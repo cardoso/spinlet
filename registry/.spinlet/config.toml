@@ -1,0 +1,33 @@
+name = "spinlet"
+version = "0.2.0"
+repository = "https://github.com/cardoso/spinlet"
+
+root = ".spinlet"
+etc = "etc"
+etc_ext = "toml"
+bin = "bin"
+bin_ext = "wasm"
+lib = "lib"
+lib_ext = "wasm"
+
+[current]
+name = "let"
+[child]
+name = "shell"
+
+[parent]
+name = "spin"
+[parent.alias]
+add = "add"
+build = "build"
+cloud = "cloud"
+deploy = "deploy"
+help = "help"
+login = "login"
+new = "new"
+plugins = "plugins"
+registry = "registry"
+templates = "templates"
+up = "up"
+watch = "watch"
+doctor = "doctor"

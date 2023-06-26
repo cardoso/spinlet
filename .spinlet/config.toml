@@ -1,6 +1,7 @@
 name = "spinlet"
 version = "0.2.0"
 repository = "https://github.com/cardoso/spinlet"
+
 root = ".spinlet"
 etc = "etc"
 etc_ext = "toml"
@@ -29,3 +30,4 @@ registry = "registry"
 templates = "templates"
 up = "up"
 watch = "watch"
+doctor = "doctor"

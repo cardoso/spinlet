@@ -1,10 +1,13 @@
 [[access.fs.dir]]
 path = "."
 read = true
+
 [access.env.var]
-keys = ["HOME"]
+keys = []
+
 [access.env.args]
 enabled = true
+
 [access.io.stdin]
 enabled = true
 [access.io.stdout]

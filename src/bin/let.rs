@@ -2,33 +2,47 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
 use cap_primitives::ambient_authority;
-use spinlet::Config;
+use spinlet::{Config, TaskLoader};
 use spinlet::Context;
 use spinlet::Loader;
 use spinlet::Spinlet;
 use spinlet::spin;
 use spinlet_manifest::Manifest;
 use tokio::process::Command;
-use tokio::task::JoinHandle;
 use wasmtime_wasi::Dir;
 use anyhow::Result;
 
 fn main() {
     human_panic::setup_panic!();
 
-    tokio::runtime::Builder::new_multi_thread()
+    let rt = match tokio::runtime::Builder::new_multi_thread()
         .enable_all()
-        .build()
-        .unwrap_or_else(|error| panic!("Failed to build runtime: {error}"))
-        .block_on(async {
+        .build() {
+            Ok(rt) => rt,
+            Err(error) => {
+                eprintln!("Failed to build spinlet runtime: {error}");
+                return;
+            },
+        };
+
+
+        rt.block_on(async {
             let cmd = match Cli::load().await {
                 Ok(cmd) => cmd,
-                Err(error) => panic!("Failed to load CLI: {error}"),
+                Err(error) => {
+                    eprintln!("Failed to load spinlet CLI: {error}");
+                    return;
+                },
             };
 
-            match cmd.run().await.expect("Failed to run spinlet") {
-                true => std::process::exit(0),
-                false => std::process::exit(1),
+            match cmd.run().await {
+                Ok(true) => (),
+                Ok(false) => {
+                    eprintln!("Spinlet exited with non-zero exit code");
+                },
+                Err(error) => {
+                    eprintln!("Failed to run spinlet: {error}");
+                },
             }
         });
 }
@@ -43,8 +57,25 @@ pub struct Cli {
 impl Cli {
     pub async fn load() -> Result<Self> {
         let mut args = std::env::args().skip(1);
-        let config: Config = toml::from_str(&tokio::fs::read_to_string(Path::new(".spinlet").join("config.toml")).await.unwrap_or_else(|error| panic!("Failed to read config: {error}"))).unwrap_or_else(|error| panic!("Failed to parse config: {error}"));
+
+        let path = Path::new(".spinlet");
+
+        if !path.exists() {
+            tokio::fs::create_dir(path).await?;
+        }
+
+        let path = path.join("config.toml");
+
+        if !path.exists() {
+            let cfg = Config::default();
+            let txt = toml::to_string(&cfg)?;
+            tokio::fs::write(&path, txt).await?;
+        }
+
+        let config = tokio::fs::read_to_string(path).await?;
+        let config: Config = toml::from_str(&config)?;
         let name = args.next().unwrap_or(config.child().name().to_string());
+
         Ok(Self {
             name,
             args: args.collect(),
@@ -60,17 +91,13 @@ impl Cli {
     }
 
     async fn run_command(&self) -> Result<bool> {
-        println!("Running command {self:#?}");
         let manifest = self.config.manifest(&self.name);
         let manifest = tokio::fs::read_to_string(manifest).await?;
         let manifest: Manifest = toml::from_str(&manifest)?;
-
-        let context = Context::new(&manifest, self.cwd());
-        let loader = Loader::new(context);
+        let context = Context::new(&manifest, self.cwd()?);
+        let loader = Loader::new(context)?;
         let spinlet = Spinlet::new(loader);
-
         let binary = tokio::fs::read(self.binary()).await?;
-
         let success = spinlet.run(&binary).await?;
         Ok(success)
     }
@@ -91,7 +118,7 @@ impl Cli {
         };
 
         let mut command = Command::new(spin).arg(&self.name).args(self.args.clone()).spawn()?;
-        let result = command.wait().await.unwrap_or_else(|error| panic!("Failed to run alias: {error}"));
+        let result = command.wait().await?;
 
         for task in after_tasks {
             task.await?;
@@ -100,11 +127,8 @@ impl Cli {
         Ok(result.success())
     }
 
-    pub fn cwd(&self) -> Dir {
-        match Dir::open_ambient_dir(".", ambient_authority()) {
-                Ok(cwd) => cwd,
-                Err(error) => panic!("Failed to open current working directory: {error}"),
-            }
+    pub fn cwd(&self) -> std::io::Result<Dir> {
+        Dir::open_ambient_dir(".", ambient_authority())
     }
 
     pub fn config(&self) -> &Config {
@@ -137,58 +161,3 @@ impl Cli {
     
 }
 
-pub struct TaskLoader {
-    manifests: HashMap<String, Manifest>,
-    before_hooks: Vec<String>,
-    after_hooks: Vec<String>,
-}
-
-impl TaskLoader {
-    pub fn new(main: &str, manifests: HashMap<String, Manifest>) -> Self {
-        let mut before_hooks = Vec::<String>::new();
-        let mut after_hooks = Vec::<String>::new();
-        for (name, manifest) in &manifests {
-            let Some(hook) = manifest.hook(main) else { continue };
-
-            if hook.before().enabled() {
-                before_hooks.push(name.to_string());
-            }
-
-            if hook.after().enabled() {
-                after_hooks.push(name.to_string());
-            }
-        }
-
-        Self {
-            manifests,
-            before_hooks,
-            after_hooks,
-        }
-    }
-
-    pub fn before_hooks(&self, config: &Config) -> Result<Vec<JoinHandle<()>>> {
-        Ok(self.tasks_for(&self.before_hooks, config)?)
-    }
-
-    pub fn after_hooks(&self, config: &Config) -> Result<Vec<JoinHandle<()>>> {
-        Ok(self.tasks_for(&self.after_hooks, config)?)
-    }
-
-    fn tasks_for(&self, hooks: &Vec<String>, config: &Config) -> Result<Vec<JoinHandle<()>>> {
-        let mut tasks = Vec::new();
-        for hook in hooks {
-            let Some(manifest) = self.manifests.get(hook) else { continue };
-            let binary = config.binary(&hook);
-            let context = Context::new(&manifest, Dir::open_ambient_dir(".", ambient_authority())?);
-            tasks.push(tokio::task::spawn(async move {
-                let loader = Loader::new(context);
-                let spinlet = Spinlet::new(loader);
-                let Ok(bytes) = tokio::fs::read(&binary).await else { return };
-                let Ok(_) = spinlet.run(&bytes).await else { return };
-                
-            }));
-        }
-
-        Ok(tasks)
-    }
-}

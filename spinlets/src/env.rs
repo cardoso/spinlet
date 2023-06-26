@@ -1,6 +1,7 @@
-pub use std::env::*;
+pub use std::env;
 use std::path::{Path, PathBuf};
 use anyhow::Result;
+use toml_edit::Document;
 
 #[derive(Debug)]
 pub struct Workspace {
@@ -12,7 +13,7 @@ impl Workspace {
     pub fn get() -> Self {
         Workspace {
             root: "/".into(),
-            current: "/".into(),
+            current: "".into(),
         }
     }
 
@@ -27,14 +28,31 @@ impl Workspace {
 
 impl Workspace {
     pub fn ls(&self) -> Result<Vec<PathBuf>> {
-        Ok(std::fs::read_dir(&self.current())?.flat_map(|entry| {
+        Ok(std::fs::read_dir(self.current())?.flat_map(|entry| {
             entry.map(|entry| entry.path())
         }).collect::<Vec<_>>())
     }
 
-    pub fn cd(&mut self, dir: impl AsRef<Path>) -> Result<String> {
-        self.current = dir.as_ref().to_path_buf();
-        Ok("".into())
+    pub fn cd(&mut self, dir: impl AsRef<Path>) -> String {
+        for component in dir.as_ref().components() {
+            use std::path::Component;
+            match component {
+                Component::Normal(name) => {
+                    self.current.push(name);
+                },
+                Component::RootDir => {
+                    self.current = self.root.clone();
+                },
+                Component::CurDir => {
+                    
+                },
+                Component::ParentDir => {
+                    self.current.pop();
+                },
+                Component::Prefix(_) => {},
+            }
+        }
+        self.current.display().to_string()
     }
 
     pub fn pwd(&self) -> Result<String> {
@@ -44,6 +62,12 @@ impl Workspace {
     pub fn cat(&self, file: impl AsRef<Path>) -> Result<String> {
         let path = self.current().join(file);
         Ok(std::fs::read_to_string(path)?)
+    }
+
+    pub fn toml(&self, file: impl AsRef<Path>) -> Result<Document> {
+        let path = self.current().join(file);
+        let content = std::fs::read_to_string(path)?;
+        Ok(content.parse::<Document>()?)
     }
 }
 

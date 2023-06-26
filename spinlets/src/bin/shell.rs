@@ -1,7 +1,7 @@
 use spinlets::*;
 
-const PROMPT: &str = "$ ";
-const HELP: &&str = &"
+const PROMPT: &str = " $ ";
+const HELP: &str = "
     cd <dir> - change directory,
     ls - list files,
     pwd - print working directory,
@@ -22,11 +22,9 @@ fn main() {
     loop {
         print_prompt(&spin);
         let input = read_line(&spin);
-        
         if should_exit(&input) { break; }
-
         let output = eval(&mut spin, &input);
-        print_output(&mut spin, output);
+        print_output(&spin, output);
     }
 }
 
@@ -35,7 +33,7 @@ fn should_exit(input: &str) -> bool {
 }
 
 fn print_output(spin: &Spinlet, output: String) {
-    spin.console().print_line(&output).expect("Failed to print output");
+    spin.console().print_line(output).expect("Failed to print output");
 }
 
 fn read_line(spin: &Spinlet) -> String {
@@ -43,6 +41,7 @@ fn read_line(spin: &Spinlet) -> String {
 }
 
 fn print_prompt(spin: &Spinlet) {
+    spin.console().print(pwd(spin)).expect("Failed to print pwd");
     spin.console().print(PROMPT).expect("Failed to print prompt");
 }
 
@@ -50,37 +49,68 @@ fn eval(spin: &mut Spinlet, input: &str) -> String {
     let mut args = input.split_whitespace();
     let Some(command) = args.next() else { return "".to_string() };
     match command {
-        "cd" => cd(&mut args, spin),
+        "cd" => cd(args, spin),
         "ls" => ls(spin),
         "pwd" => pwd(spin),
         "cat" => cat(args, spin),
         "env" => env(),
-        "help" => help(spin, input),
+        "help" => help(args, spin),
+        "toml" => toml(args, spin),
         cmd => unknown(cmd)
     }
 }
 
-fn help(spin: &Spinlet, input: &str) -> String {
-    let root = spin.workspace().root().display();
-    
-    
-    let output = match input {
-        "help" => HELP.to_string(),
-        "help cd" => "cd <dir> - change directory".to_string(),
-        "help ls" => "ls - list files".to_string(),
-        "help pwd" => "pwd - print working directory".to_string(),
-        "help cat" => "cat <file> - print file contents".to_string(),
-        "help env" => "env - print environment variables".to_string(),
-        "help help" => "help - print this help message".to_string(),
-        "help exit" => "exit - exit the shell".to_string(),
-        input => format!("Unknown help topic: {input}")
-    }.to_string();
+fn toml(mut args: std::str::SplitWhitespace, spin: &Spinlet) -> String {
+    let input = match args.next() {
+        Some(input) => input,
+        None => return "No toml path provided".to_string()
+    };
 
-    format!("[{root}] {output}")
+    let toml = match spin.workspace().toml(input) {
+        Ok(toml) => toml,
+        Err(e) => return format!("Failed to read toml: {e}")
+    };
+
+    if let Some(path) = args.next() {
+        let parts = path.split('.');
+
+        let mut value = toml.as_item();
+
+        for part in parts {
+            if let Some(v) =  value.get(part) {
+                value = v;
+            } else {
+                return format!("No value found for path: {path}");
+            }
+        }
+        
+        format!("{value}")
+    } else {
+        format!("{toml}")
+    }
+}
+
+fn help(mut args: std::str::SplitWhitespace, spin: &Spinlet) -> String {
+    let Some(input) = args.next() else {
+        return HELP.to_string()
+    };
+
+
+    match input {
+        "help" => HELP.to_string(),
+        "cd" => "cd <dir> - change directory".to_string(),
+        "ls" => "ls - list files".to_string(),
+        "pwd" => "pwd - print working directory".to_string(),
+        "cat" => "cat <file> - print file contents".to_string(),
+        "env" => "env - print environment variables".to_string(),
+        "toml" => "toml <file> <path?> - print toml file contents".to_string(),
+        "exit" => "exit - exit the shell".to_string(),
+        input => format!("Unknown help topic: {input}")
+    }
 }
 
 fn unknown(command: &str) -> String {
-    format!("Unknown command: {}", command)
+    format!("Unknown command: {command}")
 }
 
 fn env() -> String {
@@ -93,33 +123,27 @@ fn cat(mut args: std::str::SplitWhitespace, spin: &mut Spinlet) -> String {
             Ok(content) => content,
             Err(e) => format!("Failed to read file: {}", e)
         },
-        None => format!("No file specified")
+        None => "No file specified".to_string()
     }
 }
 
-fn pwd(spin: &mut Spinlet) -> String {
-    match spin.workspace_mut().pwd() {
+fn pwd(spin: &Spinlet) -> String {
+    match spin.workspace().pwd() {
         Ok(dir) => dir,
         Err(e) => format!("Failed to get current directory: {}", e)
     }
 }
 
 fn ls(spin: &mut Spinlet) -> String {
-    match spin.workspace_mut().ls() {
+    match spin.workspace().ls() {
         Ok(files) => files.iter().flat_map(|file| file.file_name()?.to_str()).collect::<Vec<_>>().join("\n"),
         Err(e) => format!("Failed to list files: {}", e)
     }
 }
 
-fn cd(args: &mut std::str::SplitWhitespace, spin: &mut Spinlet) -> String {
+fn cd(mut args: std::str::SplitWhitespace, spin: &mut Spinlet) -> String {
     match args.next() {
-        Some(dir) => match spin.workspace_mut().cd(dir) {
-            Ok(dir) => format!("Changed directory to {}", dir),
-            Err(e) => format!("Failed to change directory: {}", e)
-        },
-        None => match spin.workspace_mut().cd("/") {
-            Ok(dir) => format!("Changed directory to {}", dir),
-            Err(e) => format!("Failed to change directory: {}", e)
-        }
+        Some(dir) => spin.workspace_mut().cd(dir),
+        None => spin.workspace_mut().cd("/"),
     }
 }

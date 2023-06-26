@@ -26,7 +26,7 @@ fn main() {
         if should_exit(&input) { break; }
 
         let output = eval(&mut spin, &input);
-        print_output(&mut spin, output);
+        print_output(&spin, output);
     }
 }
 
@@ -74,7 +74,7 @@ fn help(spin: &Spinlet, input: &str) -> String {
         "help help" => "help - print this help message".to_string(),
         "help exit" => "exit - exit the shell".to_string(),
         input => format!("Unknown help topic: {input}")
-    }.to_string();
+    };
 
     format!("[{root}] {output}")
 }
@@ -84,23 +84,23 @@ fn unknown(command: &str) -> String {
 }
 
 fn env() -> String {
-    std::env::vars().map(|(k, v)| format!("{}={}", k, v)).collect::<Vec<_>>().join("\n")
+    std::env::vars().map(|(k, v)| format!("{k}={v}")).collect::<Vec<_>>().join("\n")
 }
 
 fn cat(mut args: std::str::SplitWhitespace, spin: &mut Spinlet) -> String {
     match args.next() {
         Some(file) => match spin.workspace_mut().cat(file) {
             Ok(content) => content,
-            Err(e) => format!("Failed to read file: {}", e)
+            Err(e) => format!("Failed to read file: {e}")
         },
-        None => format!("No file specified")
+        None => "No file specified".to_string()
     }
 }
 
 fn pwd(spin: &mut Spinlet) -> String {
     match spin.workspace_mut().pwd() {
         Ok(dir) => dir,
-        Err(e) => format!("Failed to get current directory: {}", e)
+        Err(e) => format!("Failed to get current directory: {e}")
     }
 }
 
@@ -113,13 +113,7 @@ fn ls(spin: &mut Spinlet) -> String {
 
 fn cd(args: &mut std::str::SplitWhitespace, spin: &mut Spinlet) -> String {
     match args.next() {
-        Some(dir) => match spin.workspace_mut().cd(dir) {
-            Ok(dir) => format!("Changed directory to {}", dir),
-            Err(e) => format!("Failed to change directory: {}", e)
-        },
-        None => match spin.workspace_mut().cd("/") {
-            Ok(dir) => format!("Changed directory to {}", dir),
-            Err(e) => format!("Failed to change directory: {}", e)
-        }
+        Some(dir) => spin.workspace_mut().cd(dir),
+        None => spin.workspace_mut().cd("/")
     }
 }
